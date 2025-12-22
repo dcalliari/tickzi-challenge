@@ -51,6 +51,16 @@ export const authRoutes = new Hono<{
 		try {
 			const { name, email, password } = c.req.valid("json");
 
+			const [existingUser] = await db
+				.select()
+				.from(usersInTickzi)
+				.where(eq(usersInTickzi.email, email))
+				.limit(1);
+
+			if (existingUser) {
+				return c.json({ error: "Email already registered" }, 409);
+			}
+
 			const passwordHash = await hashPassword(password);
 
 			const newUser = {
