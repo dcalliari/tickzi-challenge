@@ -1,0 +1,1 @@
+ALTER TABLE "tickzi"."users" ALTER COLUMN "email" SET NOT NULL;
