@@ -38,7 +38,7 @@ export const authRoutes = new Hono<{
 
 			const token = await generateToken(user.id, user.email, env.JWT_SECRET);
 
-			const { ...userWithoutPassword } = user;
+			const { password_hash, ...userWithoutPassword } = user;
 
 			return c.json({ user: userWithoutPassword, token });
 		} catch (error) {
