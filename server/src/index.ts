@@ -1,6 +1,7 @@
 import { env } from "@server/env";
 import { authRoutes } from "@server/routes/auth";
 import { eventRoutes } from "@server/routes/events";
+import { ticketRoutes } from "@server/routes/tickets";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import type { ApiErrorResponse, ApiResponse } from "shared/dist";
@@ -29,6 +30,7 @@ export const app = new Hono()
 
 	.route("/api/auth", authRoutes)
 	.route("/api/events", eventRoutes)
+	.route("/api/tickets", ticketRoutes)
 
 	.onError((err, c) => {
 		console.error("API Error:", err);
