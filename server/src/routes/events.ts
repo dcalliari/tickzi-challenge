@@ -3,7 +3,7 @@ import { db } from "@server/db";
 import { eventsInTickzi } from "@server/db/schema";
 import { authenticateToken } from "@server/lib/auth";
 import { createEventSchema, updateEventSchema } from "@server/schemas/events";
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, gt } from "drizzle-orm";
 import { Hono } from "hono";
 import type { Bindings, Variables } from "hono/types";
 
@@ -17,10 +17,26 @@ export const eventRoutes = new Hono<{
 			const events = await db
 				.select()
 				.from(eventsInTickzi)
+				.where(gt(eventsInTickzi.ticket_quantity, 0))
 				.orderBy(desc(eventsInTickzi.created_at));
 			return c.json({ success: true, data: events }, 200);
 		} catch (error) {
 			console.error("Error fetching events:", error);
+			return c.json({ error: "Internal server error" }, 500);
+		}
+	})
+
+	.get("/my-events", authenticateToken, async (c) => {
+		try {
+			const userPayload = c.get("user");
+			const events = await db
+				.select()
+				.from(eventsInTickzi)
+				.where(eq(eventsInTickzi.user_id, userPayload.userId))
+				.orderBy(desc(eventsInTickzi.created_at));
+			return c.json({ success: true, data: events }, 200);
+		} catch (error) {
+			console.error("Error fetching user's events:", error);
 			return c.json({ error: "Internal server error" }, 500);
 		}
 	})
@@ -132,6 +148,7 @@ export const eventRoutes = new Hono<{
 		},
 	)
 
+	// TODO: Apenas se não houver vendas
 	.delete("/:id", authenticateToken, async (c) => {
 		try {
 			const { id } = c.req.param();
