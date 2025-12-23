@@ -1,264 +1,536 @@
-# bhvr 🦫
+# 🎫 Tickzi Challenge
 
-![cover](https://cdn.stevedylan.dev/ipfs/bafybeievx27ar5qfqyqyud7kemnb5n2p4rzt2matogi6qttwkpxonqhra4)
+> Plataforma completa de gerenciamento e venda de ingressos para eventos - Desafio técnico para Desenvolvedor Full Stack Pleno
 
-A full-stack TypeScript monorepo starter with shared types, using Bun, Hono, Vite, and React.
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![Bun](https://img.shields.io/badge/Bun-000000?style=for-the-badge&logo=bun&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Hono](https://img.shields.io/badge/Hono-E36002?style=for-the-badge&logo=hono&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 
-## Why bhvr?
+## 🚀 Quick Start para Avaliadores
 
-While there are plenty of existing app building stacks out there, many of them are either bloated, outdated, or have too much of a vendor lock-in. bhvr is built with the opinion that you should be able to deploy your client or server in any environment while also keeping type safety.
+A forma **mais rápida** de testar a aplicação:
 
-## Features
+```bash
+# Clone o repositório
+git clone https://github.com/dcalliari/tickzi-challenge.git
+cd tickzi-challenge
 
-- **Full-Stack TypeScript**: End-to-end type safety between client and server
-- **Shared Types**: Common type definitions shared between client and server
-- **Monorepo Structure**: Organized as a workspaces-based monorepo with Turbo for build orchestration
-- **Modern Stack**:
-  - [Bun](https://bun.sh) as the JavaScript runtime and package manager
-  - [Hono](https://hono.dev) as the backend framework
-  - [Vite](https://vitejs.dev) for frontend bundling
-  - [React](https://react.dev) for the frontend UI
-  - [Turbo](https://turbo.build) for monorepo build orchestration and caching
+# Execute com Docker (recomendado)
+docker-compose up --build
 
-## Project Structure
-
-```
-.
-├── client/               # React frontend
-├── server/               # Hono backend
-├── shared/               # Shared TypeScript definitions
-│   └── src/types/        # Type definitions used by both client and server
-├── package.json          # Root package.json with workspaces
-└── turbo.json            # Turbo configuration for build orchestration
+# Aguarde ~2-3 minutos e acesse:
+# - Frontend: http://localhost:5173
+# - API: http://localhost:3000
 ```
 
-### Server
+**Pronto!** A aplicação completa estará rodando. ✅
 
-bhvr uses Hono as a backend API for its simplicity and massive ecosystem of plugins. If you have ever used Express then it might feel familiar. Declaring routes and returning data is easy.
+## 📋 Índice
+
+- [Sobre o Projeto](#-sobre-o-projeto)
+- [Funcionalidades](#-funcionalidades)
+- [Stack Tecnológica](#-stack-tecnológica)
+- [Como Executar](#-como-executar)
+  - [Com Docker (Recomendado)](#opção-1-docker-recomendado)
+  - [Desenvolvimento Local](#opção-2-desenvolvimento-local)
+- [Arquitetura](#-arquitetura)
+- [API Documentation](#-api-documentation)
+- [Testes](#-testes)
+- [CI/CD](#-cicd)
+- [Desafios Técnicos](#-desafios-técnicos)
+- [Melhorias Futuras](#-melhorias-futuras)
+
+## 📖 Sobre o Projeto
+
+Tickzi é uma plataforma full-stack de gerenciamento de eventos e venda de ingressos, desenvolvida como desafio técnico. O projeto implementa funcionalidades completas de autenticação, CRUD de eventos, reserva de ingressos com controle de concorrência, cache com Redis e paginação.
+
+### Características Principais
+
+- ✅ **Vitrine Pública**: Visualização de eventos sem necessidade de login
+- ✅ **Autenticação JWT**: Sistema completo de registro e login
+- ✅ **Gestão de Eventos**: CRUD completo com validações
+- ✅ **Reserva de Ingressos**: Sistema transacional com proteção contra overselling
+- ✅ **Cache Redis**: Otimização de performance com invalidação inteligente
+- ✅ **Paginação**: Todas as listagens paginadas para melhor performance
+- ✅ **Type Safety**: TypeScript end-to-end com tipos compartilhados
+- ✅ **Monorepo**: Organização profissional com Turbo
+
+## ✨ Funcionalidades
+
+### Para Usuários
+
+- 🎭 **Visualizar Eventos**: Navegue pela vitrine pública de eventos com ingressos disponíveis
+- 👤 **Criar Conta**: Registre-se na plataforma
+- 🔐 **Login Seguro**: Autenticação com JWT
+- 🎟️ **Reservar Ingressos**: Garanta sua vaga em eventos (máximo 1 por evento)
+- 📋 **Meus Ingressos**: Visualize todos os ingressos reservados
+
+### Para Organizadores
+
+- ➕ **Criar Eventos**: Adicione novos eventos com todas as informações
+- ✏️ **Editar Eventos**: Atualize informações dos seus eventos
+- 🗑️ **Deletar Eventos**: Remova eventos (apenas se não houver ingressos vendidos)
+- 📊 **Gerenciar Eventos**: Visualize todos os seus eventos criados
+
+### Recursos Técnicos
+
+- ⚡ **Performance**: Cache Redis com TTL configurável
+- 🔄 **Concorrência**: Transações atômicas para evitar overselling
+- 📄 **Paginação**: Listagens otimizadas com metadados de navegação
+- 🛡️ **Segurança**: Senhas hasheadas, tokens JWT, validação de inputs
+- 🎨 **UI/UX**: Interface moderna com Tailwind CSS v4 e shadcn/ui
+
+## 🛠️ Stack Tecnológica
+
+### Backend
+
+- **Runtime**: [Bun](https://bun.sh) - JavaScript runtime ultra-rápido
+- **Framework**: [Hono](https://hono.dev) - Web framework leve e performático
+- **Database**: [PostgreSQL 16](https://www.postgresql.org/) - Banco relacional robusto
+- **ORM**: [Drizzle ORM](https://orm.drizzle.team/) - TypeScript-first ORM
+- **Cache**: [Redis 7](https://redis.io/) - Cache em memória
+- **Validação**: [Zod](https://zod.dev/) - Validação de schemas TypeScript
+- **Auth**: JWT + bcryptjs
+
+### Frontend
+
+- **Framework**: [React 18](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
+- **Build Tool**: [Vite](https://vitejs.dev/) - Build ultra-rápido
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
+- **UI Components**: [shadcn/ui](https://ui.shadcn.com/)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Routing**: [React Router](https://reactrouter.com/)
+
+### DevOps & Tools
+
+- **Monorepo**: [Turbo](https://turbo.build/) - Build system otimizado
+- **Package Manager**: [Bun](https://bun.sh)
+- **Code Quality**: [Biome](https://biomejs.dev/) - Linter + Formatter
+- **Containerização**: [Docker](https://www.docker.com/) + Docker Compose
+- **CI/CD**: GitHub Actions
+- **Database Migrations**: Drizzle Kit
+
+## 🚀 Como Executar
+
+### Pré-requisitos
+
+- [Docker](https://docs.docker.com/get-docker/) e [Docker Compose](https://docs.docker.com/compose/install/) **OU**
+- [Bun](https://bun.sh/docs/installation) >= 1.0
+- [PostgreSQL](https://www.postgresql.org/download/) >= 16 (se não usar Docker)
+- [Redis](https://redis.io/download) >= 7 (se não usar Docker)
+
+### Opção 1: Docker (Recomendado)
+
+**A forma mais simples e rápida:**
+
+```bash
+# Clone o repositório
+git clone https://github.com/dcalliari/tickzi-challenge.git
+cd tickzi-challenge
+
+# Suba toda a stack
+docker-compose up --build
+
+# Acesse a aplicação
+# Frontend: http://localhost:5173
+# API: http://localhost:3000
+```
+
+Para mais detalhes sobre Docker, veja [DOCKER.md](./DOCKER.md).
+
+### Opção 2: Desenvolvimento Local
+
+**Para desenvolvimento com hot reload:**
+
+```bash
+# 1. Clone o repositório
+git clone https://github.com/dcalliari/tickzi-challenge.git
+cd tickzi-challenge
+
+# 2. Instale as dependências
+bun install
+
+# 3. Suba PostgreSQL e Redis (via Docker)
+docker-compose up postgres redis -d
+
+# 4. Configure as variáveis de ambiente
+cp server/.env.example server/.env
+cp client/.env.example client/.env
+# Edite os arquivos .env conforme necessário
+
+# 5. Execute as migrations
+cd server
+bun run db:migrate
+cd ..
+
+# 6. Inicie toda a aplicação (Turbo gerencia client + server + shared)
+bun run dev
+```
+
+### Variáveis de Ambiente
+
+**Server** (`server/.env`):
+```bash
+NODE_ENV=development
+PORT=3000
+DATABASE_URL=postgresql://tickzi_user:tickzi_pass@localhost:5432/tickzi_db
+REDIS_URL=redis://localhost:6379
+FRONTEND_URL=http://localhost:5173
+JWT_SECRET=seu-secret-super-secreto-min-32-caracteres
+```
+
+**Client** (`client/.env`):
+```bash
+VITE_SERVER_URL=http://localhost:3000
+```
+
+## 📐 Arquitetura
+
+### Estrutura do Monorepo
 
 ```
-server
-├── bun.lock
-├── package.json
-├── README.md
-├── src
-│   └── index.ts
-└── tsconfig.json
+tickzi-challenge/
+├── client/                 # Frontend React + Vite
+│   ├── src/
+│   │   ├── components/    # Componentes reutilizáveis
+│   │   ├── contexts/      # React Context (Auth)
+│   │   ├── pages/         # Páginas da aplicação
+│   │   └── lib/           # Utilitários
+│   └── ...
+├── server/                 # Backend Hono + PostgreSQL
+│   ├── src/
+│   │   ├── db/            # Schema e conexão do banco
+│   │   ├── lib/           # Utilitários (auth, redis)
+│   │   ├── routes/        # Rotas da API
+│   │   ├── schemas/       # Validação Zod
+│   │   └── types/         # TypeScript types
+│   ├── drizzle/           # Migrations do banco
+│   └── ...
+├── shared/                 # Tipos compartilhados
+│   └── src/types/         # Types usado por client e server
+├── docker-compose.yml     # Orquestração Docker
+└── ...
 ```
 
-```typescript src/index.ts
-import { Hono } from 'hono'
-import { cors } from 'hono/cors'
-import type { ApiResponse } from 'shared/dist'
+### Banco de Dados
 
-const app = new Hono()
+**Schema PostgreSQL** (`tickzi` namespace):
 
-app.use(cors())
+```sql
+-- Usuários
+tickzi.users (
+  id UUID PRIMARY KEY,
+  name VARCHAR,
+  email VARCHAR UNIQUE,
+  password_hash VARCHAR,
+  created_at TIMESTAMP
+)
 
-app.get('/', (c) => {
-  return c.text('Hello Hono!')
-})
+-- Eventos
+tickzi.events (
+  id UUID PRIMARY KEY,
+  user_id UUID → users.id,
+  title VARCHAR,
+  description TEXT,
+  date TIMESTAMP,
+  location VARCHAR,
+  ticket_quantity INTEGER,
+  ticket_price INTEGER, -- em centavos
+  created_at TIMESTAMP
+)
 
-app.get('/hello', async (c) => {
-
-  const data: ApiResponse = {
-    message: "Hello BHVR!",
-    success: true
-  }
-
-  return c.json(data, { status: 200 })
-})
-
-export default app
+-- Ingressos
+tickzi.tickets (
+  id UUID PRIMARY KEY,
+  event_id UUID → events.id,
+  user_id UUID → users.id,
+  purchased_at TIMESTAMP
+)
 ```
 
-If you wanted to add a database to Hono you can do so with a multitude of Typescript libraries like [Supabase](https://supabase.com), or ORMs like [Drizzle](https://orm.drizzle.team/docs/get-started) or [Prisma](https://www.prisma.io/orm)
-
-### Client
-
-bhvr uses Vite + React Typescript template, which means you can build your frontend just as you would with any other React app. This makes it flexible to add UI components like [shadcn/ui](https://ui.shadcn.com) or routing using [React Router](https://reactrouter.com/start/declarative/installation).
+### Fluxo de Dados
 
 ```
-client
-├── eslint.config.js
-├── index.html
-├── package.json
-├── public
-│   └── vite.svg
-├── README.md
-├── src
-│   ├── App.css
-│   ├── App.tsx
-│   ├── assets
-│   ├── index.css
-│   ├── main.tsx
-│   └── vite-env.d.ts
-├── tsconfig.app.json
-├── tsconfig.json
-├── tsconfig.node.json
-└── vite.config.ts
+┌─────────────┐      ┌─────────────┐      ┌──────────┐
+│   Cliente   │ ───▶ │   Servidor  │ ───▶ │  Redis   │
+│  (React)    │      │   (Hono)    │      │ (Cache)  │
+└─────────────┘      └─────────────┘      └──────────┘
+                            │
+                            ▼
+                     ┌──────────────┐
+                     │  PostgreSQL  │
+                     │  (Database)  │
+                     └──────────────┘
 ```
 
-```typescript src/App.tsx
-import { useState } from 'react'
-import beaver from './assets/beaver.svg'
-import { ApiResponse } from 'shared'
-import './App.css'
+## 📚 API Documentation
 
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:3000"
+### Base URL
+```
+http://localhost:3000/api
+```
 
-function App() {
-  const [data, setData] = useState<ApiResponse | undefined>()
+### Endpoints
 
-  async function sendRequest() {
-    try {
-      const req = await fetch(`${SERVER_URL}/hello`)
-      const res: ApiResponse = await req.json()
-      setData(res)
-    } catch (error) {
-      console.log(error)
-    }
-  }
+#### Autenticação
 
-  return (
-    <>
-      <div>
-        <a href="https://github.com/stevedylandev/bhvr" target="_blank">
-          <img src={beaver} className="logo" alt="beaver logo" />
-        </a>
-      </div>
-      <h1>bhvr</h1>
-      <h2>Bun + Hono + Vite + React</h2>
-      <p>A typesafe fullstack monorepo</p>
-      <div className="card">
-        <button onClick={sendRequest}>
-          Call API
-        </button>
-        {data && (
-          <pre className='response'>
-            <code>
-            Message: {data.message} <br />
-            Success: {data.success.toString()}
-            </code>
-          </pre>
-        )}
-      </div>
-      <p className="read-the-docs">
-        Click the beaver to learn more
-      </p>
-    </>
-  )
+**POST** `/auth/register`
+```json
+// Request
+{
+  "name": "João Silva",
+  "email": "joao@example.com",
+  "password": "SenhaSegura123!"
 }
 
-export default App
+// Response 201
+{
+  "user": {
+    "id": "uuid",
+    "name": "João Silva",
+    "email": "joao@example.com"
+  },
+  "token": "jwt.token.here"
+}
 ```
 
-### Shared
+**POST** `/auth/login`
+```json
+// Request
+{
+  "email": "joao@example.com",
+  "password": "SenhaSegura123!"
+}
 
-The Shared package is used for anything you want to share between the Server and Client. This could be types or libraries that you use in both environments.
-
+// Response 200
+{
+  "user": { ... },
+  "token": "jwt.token.here"
+}
 ```
-shared
-├── package.json
-├── src
-│   ├── index.ts
-│   └── types
-│       └── index.ts
-└── tsconfig.json
+
+#### Eventos
+
+**GET** `/events?page=1&limit=10` (Público)
+```json
+// Response 200
+{
+  "success": true,
+  "data": [...],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 45,
+    "totalPages": 5,
+    "hasNextPage": true,
+    "hasPreviousPage": false
+  }
+}
 ```
 
-Inside the `src/index.ts` we export any of our code from the folders so it's usable in other parts of the monorepo
+**GET** `/events/:id` (Público)
+
+**POST** `/events` (Autenticado)
+
+**PUT** `/events/:id` (Autenticado, apenas dono)
+
+**DELETE** `/events/:id` (Autenticado, apenas dono, sem tickets vendidos)
+
+**GET** `/events/my-events` (Autenticado)
+
+#### Ingressos
+
+**POST** `/tickets` (Autenticado)
+```json
+// Request
+{
+  "event_id": "uuid"
+}
+
+// Response 201
+{
+  "success": true,
+  "message": "Ticket reserved successfully",
+  "data": { ... }
+}
+```
+
+**GET** `/tickets?page=1&limit=10` (Autenticado)
+
+Para documentação completa, veja [CHALLENGE.md](./CHALLENGE.md).
+
+## 🧪 Testes
+
+### Estratégia de Testes
+
+O projeto segue a pirâmide de testes:
+- **60%** Unit Tests
+- **30%** Integration Tests
+- **10%** E2E Tests
+
+Para detalhes completos, veja [server/TESTING_STRATEGY.md](./server/TESTING_STRATEGY.md).
+
+### Executar Testes
+
+```bash
+# Todos os testes
+bun test
+
+# Apenas unit tests
+bun test __tests__/unit
+
+# Apenas integration tests
+bun test __tests__/integration
+
+# Com coverage
+bun test --coverage
+```
+
+## 🔄 CI/CD
+
+Pipeline automatizado com GitHub Actions:
+
+- ✅ **Lint & Type Check**: Biome + TypeScript
+- ✅ **Tests**: Suite completa de testes
+- ✅ **Build**: Client + Server
+- ✅ **Docker Build**: Validação de imagens
+
+Ver [.github/workflows/ci.yml](./.github/workflows/ci.yml).
+
+## 💪 Desafios Técnicos Resolvidos
+
+### 1. Controle de Concorrência
+**Problema**: Múltiplos usuários tentando reservar o último ingresso simultaneamente.
+
+**Solução**: Transações atômicas com `FOR UPDATE` lock no PostgreSQL.
 
 ```typescript
-export * from "./types"
+await db.transaction(async (tx) => {
+  const [event] = await tx
+    .select()
+    .from(eventsInTickzi)
+    .where(eq(eventsInTickzi.id, event_id))
+    .for("update")  // Row-level lock
+    .limit(1);
+  
+  // Validações + inserção do ticket + decremento de quantidade
+});
 ```
 
-By running `bun run dev` or `bun run build` it will compile and export the packages from `shared` so it can be used in either `client` or `server`
+### 2. Cache Inteligente
+**Problema**: Queries frequentes ao banco sobrecarregando o sistema.
+
+**Solução**: Redis cache com invalidação automática.
 
 ```typescript
-import { ApiResponse } from 'shared'
+// Cache em listagens
+const cachedData = await getCachedData(cacheKey);
+if (cachedData) return cachedData;
+
+// Invalidação em mutações
+await invalidateCache(`${CACHE_KEYS.EVENTS_LIST}:*`);
 ```
 
-## Getting Started
+### 3. Paginação Eficiente
+**Problema**: Retornar 1000+ eventos em uma única resposta.
 
-### Quick Start
+**Solução**: Paginação com metadados e validação Zod.
 
-You can start a new bhvr project using the [CLI](https://github.com/stevedylandev/create-bhvr)
-
-```bash
-bun create bhvr
+```typescript
+const paginationSchema = z.object({
+  page: z.string().default("1").transform(Number),
+  limit: z.string().default("10").transform(Number).max(100),
+});
 ```
 
-### Installation
+### 4. Type Safety End-to-End
+**Problema**: Inconsistências entre frontend e backend.
 
-```bash
-# Install dependencies for all workspaces
-bun install
+**Solução**: Pacote `shared` com tipos reutilizáveis.
+
+```typescript
+// shared/src/types/index.ts
+export type Event = { ... };
+
+// Usado tanto no client quanto server
+import type { Event } from 'shared';
 ```
 
-### Development
+## 🔮 Melhorias Futuras
+
+- [ ] **WebSocket**: Atualização em tempo real de quantidade de ingressos
+- [ ] **Payment Gateway**: Integração com Stripe/MercadoPago
+- [ ] **Email Service**: Confirmação de reserva por email
+- [ ] **QR Code**: Geração de QR code para ingressos
+- [ ] **Admin Dashboard**: Painel administrativo com métricas
+- [ ] **Rate Limiting**: Proteção contra abuso de API
+- [ ] **GraphQL**: Alternativa à REST API
+- [ ] **Mobile App**: React Native para iOS/Android
+- [ ] **Internacionalização**: Suporte multi-idioma
+- [ ] **Analytics**: Rastreamento de eventos com Google Analytics
+
+## 📄 Documentação Adicional
+
+- 📘 [Challenge Requirements](./CHALLENGE.md) - Requisitos do desafio
+- 🐳 [Docker Setup](./DOCKER.md) - Guia completo de Docker
+- 🧪 [Testing Strategy](./server/TESTING_STRATEGY.md) - Estratégia de testes
+- ⚡ [Redis & Pagination](./REDIS_PAGINATION.md) - Implementação detalhada
+
+## 🤝 Desenvolvimento
+
+### Scripts Disponíveis
 
 ```bash
-# Run all workspaces in development mode with Turbo
-bun run dev
+# Root
+bun run dev          # Inicia todos os serviços
+bun run build        # Build de todos os pacotes
+bun run lint         # Lint com Biome
+bun run format       # Format com Biome
+bun run type-check   # Type check TypeScript
 
-# Or run individual workspaces directly
-bun run dev:client    # Run the Vite dev server for React
-bun run dev:server    # Run the Hono backend
+# Server
+bun run dev:server   # Dev server com hot reload
+bun run db:generate  # Gerar migrations
+bun run db:migrate   # Executar migrations
+bun run db:push      # Push schema (dev only)
+bun run db:studio    # Drizzle Studio
+
+# Client
+bun run dev:client   # Dev client com hot reload
 ```
 
-### Building
+### Code Style
+
+O projeto usa [Biome](https://biomejs.dev/) para linting e formatting:
 
 ```bash
-# Build all workspaces with Turbo
-bun run build
+# Format código
+bun run format
 
-# Or build individual workspaces directly
-bun run build:client  # Build the React frontend
-bun run build:server  # Build the Hono backend
-```
-
-### Additional Commands
-
-```bash
-# Lint all workspaces
+# Lint código
 bun run lint
-
-# Type check all workspaces
-bun run type-check
-
-# Run tests across all workspaces
-bun run test
 ```
 
-### Deployment
+Configuração: [biome.json](./biome.json)
 
-Deplying each piece is very versatile and can be done numerous ways, and exploration into automating these will happen at a later date. Here are some references in the meantime.
+## 👤 Autor
 
-**Client**
-- [Orbiter](https://orbiter.host)
-- [GitHub Pages](https://vite.dev/guide/static-deploy.html#github-pages)
-- [Netlify](https://vite.dev/guide/static-deploy.html#netlify)
-- [Cloudflare Pages](https://vite.dev/guide/static-deploy.html#cloudflare-pages)
+**Douglas Calliari**
 
-**Server**
-- [Cloudflare Worker](https://gist.github.com/stevedylandev/4aa1fc569bcba46b7169193c0498d0b3)
-- [Bun](https://hono.dev/docs/getting-started/bun)
-- [Node.js](https://hono.dev/docs/getting-started/nodejs)
+- LinkedIn: [linkedin.com/in/douglascalliari](https://linkedin.com/in/douglascalliari)
+- GitHub: [@dcalliari](https://github.com/dcalliari)
+- Email: contato@douglascalliari.com
 
-## Type Sharing
+## 📝 Licença
 
-Types are automatically shared between the client and server thanks to the shared package and TypeScript path aliases. You can import them in your code using:
+Este projeto está sob a licença MIT. Veja [LICENSE](./LICENSE) para mais detalhes.
 
-```typescript
-import { ApiResponse } from 'shared/types';
-```
+---
 
-## Learn More
-
-- [Bun Documentation](https://bun.sh/docs)
-- [Vite Documentation](https://vitejs.dev/guide/)
-- [React Documentation](https://react.dev/learn)
-- [Hono Documentation](https://hono.dev/docs)
-- [Turbo Documentation](https://turbo.build/docs)
-- [TypeScript Documentation](https://www.typescriptlang.org/docs/)
+<p align="center">
+  Desenvolvido com ❤️ para o desafio técnico Full Stack Pleno
+</p>
