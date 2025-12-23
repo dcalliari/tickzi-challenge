@@ -11,10 +11,12 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$  POSTGRES_USER -d   $$POSTGRES_DB"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - tickzi-network
 
   redis:
     image: redis:7
@@ -28,7 +30,51 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - tickzi-network
+
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    container_name: tickzi-server
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://tickzi_user:tickzi_pass@postgres:5432/tickzi_db
+      REDIS_URL: redis://redis:6379
+      FRONTEND_URL: http://localhost:5173
+      JWT_SECRET: tickzi-super-secret-jwt-key-for-development-only-min-32-chars
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - tickzi-network
+    restart: unless-stopped
+
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+      args:
+        VITE_SERVER_URL: http://localhost:3000
+    container_name: tickzi-client
+    ports:
+      - "5173:80"
+    depends_on:
+      - server
+    networks:
+      - tickzi-network
+    restart: unless-stopped
 
 volumes:
   postgres_data:
   redis_data:
+
+networks:
+  tickzi-network:
+    driver: bridge
