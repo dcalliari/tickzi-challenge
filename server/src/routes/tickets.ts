@@ -2,10 +2,26 @@ import { zValidator } from "@hono/zod-validator";
 import { db } from "@server/db";
 import { eventsInTickzi, ticketsInTickzi } from "@server/db/schema";
 import { authenticateToken } from "@server/lib/auth";
+import { CACHE_KEYS, invalidateCache } from "@server/lib/redis";
+import { paginationSchema } from "@server/schemas/pagination";
 import { reserveTicketSchema } from "@server/schemas/tickets";
-import { and, desc, eq, sql } from "drizzle-orm";
+import type { PaginatedResponse } from "@server/types";
+import { and, count, desc, eq, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import type { Bindings, Variables } from "hono/types";
+
+type TicketWithEvent = {
+	id: string;
+	purchased_at: string | null;
+	event: {
+		id: string;
+		title: string;
+		description: string | null;
+		date: string;
+		location: string;
+		ticket_price: number;
+	};
+};
 
 export const ticketRoutes = new Hono<{
 	Bindings: Bindings;
@@ -80,6 +96,9 @@ export const ticketRoutes = new Hono<{
 					return c.json({ error: result.error }, result.status);
 				}
 
+				await invalidateCache(`${CACHE_KEYS.EVENTS_LIST}:*`);
+				await invalidateCache(CACHE_KEYS.EVENT_DETAIL(event_id));
+
 				return c.json(
 					{
 						success: true,
@@ -95,34 +114,64 @@ export const ticketRoutes = new Hono<{
 		},
 	)
 
-	.get("/", authenticateToken, async (c) => {
-		try {
-			const userPayload = c.get("user");
+	.get(
+		"/",
+		authenticateToken,
+		zValidator("query", paginationSchema),
+		async (c) => {
+			try {
+				const userPayload = c.get("user");
+				const { page, limit } = c.req.valid("query");
+				const offset = (page - 1) * limit;
 
-			const tickets = await db
-				.select({
-					id: ticketsInTickzi.id,
-					purchased_at: ticketsInTickzi.purchased_at,
-					event: {
-						id: eventsInTickzi.id,
-						title: eventsInTickzi.title,
-						description: eventsInTickzi.description,
-						date: eventsInTickzi.date,
-						location: eventsInTickzi.location,
-						ticket_price: eventsInTickzi.ticket_price,
+				const [totalResult] = await db
+					.select({ count: count() })
+					.from(ticketsInTickzi)
+					.where(eq(ticketsInTickzi.user_id, userPayload.userId));
+
+				const total = totalResult?.count || 0;
+				const totalPages = Math.ceil(total / limit);
+
+				const tickets = await db
+					.select({
+						id: ticketsInTickzi.id,
+						purchased_at: ticketsInTickzi.purchased_at,
+						event: {
+							id: eventsInTickzi.id,
+							title: eventsInTickzi.title,
+							description: eventsInTickzi.description,
+							date: eventsInTickzi.date,
+							location: eventsInTickzi.location,
+							ticket_price: eventsInTickzi.ticket_price,
+						},
+					})
+					.from(ticketsInTickzi)
+					.innerJoin(
+						eventsInTickzi,
+						eq(ticketsInTickzi.event_id, eventsInTickzi.id),
+					)
+					.where(eq(ticketsInTickzi.user_id, userPayload.userId))
+					.orderBy(desc(ticketsInTickzi.purchased_at))
+					.limit(limit)
+					.offset(offset);
+
+				const response: PaginatedResponse<TicketWithEvent> = {
+					success: true,
+					data: tickets,
+					pagination: {
+						page,
+						limit,
+						total,
+						totalPages,
+						hasNextPage: page < totalPages,
+						hasPreviousPage: page > 1,
 					},
-				})
-				.from(ticketsInTickzi)
-				.innerJoin(
-					eventsInTickzi,
-					eq(ticketsInTickzi.event_id, eventsInTickzi.id),
-				)
-				.where(eq(ticketsInTickzi.user_id, userPayload.userId))
-				.orderBy(desc(ticketsInTickzi.purchased_at));
+				};
 
-			return c.json({ success: true, data: tickets }, 200);
-		} catch (error) {
-			console.error("Error fetching tickets:", error);
-			return c.json({ error: "Internal server error" }, 500);
-		}
-	});
+				return c.json(response, 200);
+			} catch (error) {
+				console.error("Error fetching tickets:", error);
+				return c.json({ error: "Internal server error" }, 500);
+			}
+		},
+	);
