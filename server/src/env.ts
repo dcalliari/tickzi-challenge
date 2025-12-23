@@ -9,9 +9,12 @@ const envSchema = z.object({
 		.transform(Number)
 		.pipe(z.number().int().positive())
 		.default(3000),
-	DATABASE_URL: z.url("Invalid database URL"),
-	FRONTEND_URL: z.url("Invalid frontend URL"),
+	DATABASE_URL: z
+		.url("Invalid database URL")
+		.default("postgresql://postgres:postgres@localhost:5432/tickzi_db"),
+	FRONTEND_URL: z.url("Invalid frontend URL").default("http://localhost:5173"),
 	JWT_SECRET: z.string().min(32, "JWT secret must be at least 32 characters"),
+	REDIS_URL: z.string().default("redis://localhost:6379"),
 });
 
 export type Env = z.infer<typeof envSchema>;
