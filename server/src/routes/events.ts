@@ -1,9 +1,9 @@
 import { zValidator } from "@hono/zod-validator";
 import { db } from "@server/db";
-import { eventsInTickzi } from "@server/db/schema";
+import { eventsInTickzi, ticketsInTickzi } from "@server/db/schema";
 import { authenticateToken } from "@server/lib/auth";
 import { createEventSchema, updateEventSchema } from "@server/schemas/events";
-import { desc, eq, gt } from "drizzle-orm";
+import { count, desc, eq, gt } from "drizzle-orm";
 import { Hono } from "hono";
 import type { Bindings, Variables } from "hono/types";
 
@@ -12,6 +12,7 @@ export const eventRoutes = new Hono<{
 	Variables: Variables;
 }>()
 
+	// TODO: Pagination and Redis caching
 	.get("/", async (c) => {
 		try {
 			const events = await db
@@ -166,6 +167,18 @@ export const eventRoutes = new Hono<{
 
 			if (existingEvent.user_id !== userPayload.userId) {
 				return c.json({ success: false, error: "Unauthorized" }, 403);
+			}
+
+			const ticketCount = await db
+				.select({ count: count() })
+				.from(ticketsInTickzi)
+				.where(eq(ticketsInTickzi.event_id, id));
+
+			if (ticketCount[0] && ticketCount[0].count > 0) {
+				return c.json(
+					{ success: false, error: "Cannot delete event with sold tickets" },
+					400,
+				);
 			}
 
 			await db.delete(eventsInTickzi).where(eq(eventsInTickzi.id, id));

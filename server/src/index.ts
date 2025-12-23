@@ -1,9 +1,9 @@
 import { env } from "@server/env";
 import { authRoutes } from "@server/routes/auth";
+import { eventRoutes } from "@server/routes/events";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import type { ApiErrorResponse, ApiResponse } from "shared/dist";
-import { eventRoutes } from "./routes/events";
 
 export const app = new Hono()
 
@@ -20,7 +20,7 @@ export const app = new Hono()
 
 	.get("/hello", async (c) => {
 		const data: ApiResponse = {
-			message: "Hello BHVR!",
+			message: "Hello Tickzi!",
 			success: true,
 		};
 
