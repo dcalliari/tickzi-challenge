@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@radix-ui/react-label": "^2.1.8",
     "@radix-ui/react-slot": "^1.2.4",
     "@tailwindcss/vite": "^4.1.18",
     "class-variance-authority": "^0.7.1",
@@ -16,8 +17,9 @@
     "lucide-react": "^0.507.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
-    "shared": "workspace:*",
+    "react-router-dom": "^7.11.0",
     "server": "workspace:*",
+    "shared": "workspace:*",
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.18"
   },
