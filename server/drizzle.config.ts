@@ -8,5 +8,5 @@ export default defineConfig({
 	dbCredentials: {
 		url: env.DATABASE_URL,
 	},
-	schemaFilter: ["appe"],
+	schemaFilter: ["tickzi"],
 });
