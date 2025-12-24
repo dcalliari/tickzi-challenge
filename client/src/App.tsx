@@ -6,6 +6,7 @@ import { CreateEventPage } from "@/pages/CreateEventPage";
 import { EditEventPage } from "@/pages/EditEventPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { MyEventsPage } from "@/pages/MyEventsPage";
+import { MyTicketsPage } from "@/pages/MyTicketsPage";
 import { PublicEventsPage } from "@/pages/PublicEventsPage";
 import { RegisterPage } from "@/pages/RegisterPage";
 
@@ -39,6 +40,14 @@ function App() {
 						element={
 							<ProtectedRoute>
 								<EditEventPage />
+							</ProtectedRoute>
+						}
+					/>
+					<Route
+						path="/tickets"
+						element={
+							<ProtectedRoute>
+								<MyTicketsPage />
 							</ProtectedRoute>
 						}
 					/>
