@@ -1,0 +1,4 @@
+# Bun test configuration
+[test]
+preload = "./__tests__/setup/hooks.ts"
+timeout = 30000
