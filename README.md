@@ -140,8 +140,6 @@ docker-compose up --build
 # API: http://localhost:3000
 ```
 
-Para mais detalhes sobre Docker, veja [DOCKER.md](./DOCKER.md).
-
 ### Opção 2: Desenvolvimento Local
 
 **Para desenvolvimento com hot reload:**
@@ -170,236 +168,6 @@ cd ..
 # 6. Inicie toda a aplicação (Turbo gerencia client + server + shared)
 bun run dev
 ```
-
-### Variáveis de Ambiente
-
-**Server** (`server/.env`):
-```bash
-NODE_ENV=development
-PORT=3000
-DATABASE_URL=postgresql://tickzi_user:tickzi_pass@localhost:5432/tickzi_db
-REDIS_URL=redis://localhost:6379
-FRONTEND_URL=http://localhost:5173
-JWT_SECRET=seu-secret-super-secreto-min-32-caracteres
-```
-
-**Client** (`client/.env`):
-```bash
-VITE_SERVER_URL=http://localhost:3000
-```
-
-## 📐 Arquitetura
-
-### Estrutura do Monorepo
-
-```
-tickzi-challenge/
-├── client/                 # Frontend React + Vite
-│   ├── src/
-│   │   ├── components/    # Componentes reutilizáveis
-│   │   ├── contexts/      # React Context (Auth)
-│   │   ├── pages/         # Páginas da aplicação
-│   │   └── lib/           # Utilitários
-│   └── ...
-├── server/                 # Backend Hono + PostgreSQL
-│   ├── src/
-│   │   ├── db/            # Schema e conexão do banco
-│   │   ├── lib/           # Utilitários (auth, redis)
-│   │   ├── routes/        # Rotas da API
-│   │   ├── schemas/       # Validação Zod
-│   │   └── types/         # TypeScript types
-│   ├── drizzle/           # Migrations do banco
-│   └── ...
-├── shared/                 # Tipos compartilhados
-│   └── src/types/         # Types usado por client e server
-├── docker-compose.yml     # Orquestração Docker
-└── ...
-```
-
-### Banco de Dados
-
-**Schema PostgreSQL** (`tickzi` namespace):
-
-```sql
--- Usuários
-tickzi.users (
-  id UUID PRIMARY KEY,
-  name VARCHAR,
-  email VARCHAR UNIQUE,
-  password_hash VARCHAR,
-  created_at TIMESTAMP
-)
-
--- Eventos
-tickzi.events (
-  id UUID PRIMARY KEY,
-  user_id UUID → users.id,
-  title VARCHAR,
-  description TEXT,
-  date TIMESTAMP,
-  location VARCHAR,
-  ticket_quantity INTEGER,
-  ticket_price INTEGER, -- em centavos
-  created_at TIMESTAMP
-)
-
--- Ingressos
-tickzi.tickets (
-  id UUID PRIMARY KEY,
-  event_id UUID → events.id,
-  user_id UUID → users.id,
-  purchased_at TIMESTAMP
-)
-```
-
-### Fluxo de Dados
-
-```
-┌─────────────┐      ┌─────────────┐      ┌──────────┐
-│   Cliente   │ ───▶ │   Servidor  │ ───▶ │  Redis   │
-│  (React)    │      │   (Hono)    │      │ (Cache)  │
-└─────────────┘      └─────────────┘      └──────────┘
-                            │
-                            ▼
-                     ┌──────────────┐
-                     │  PostgreSQL  │
-                     │  (Database)  │
-                     └──────────────┘
-```
-
-## 📚 API Documentation
-
-### Base URL
-```
-http://localhost:3000/api
-```
-
-### Endpoints
-
-#### Autenticação
-
-**POST** `/auth/register`
-```json
-// Request
-{
-  "name": "João Silva",
-  "email": "joao@example.com",
-  "password": "SenhaSegura123!"
-}
-
-// Response 201
-{
-  "user": {
-    "id": "uuid",
-    "name": "João Silva",
-    "email": "joao@example.com"
-  },
-  "token": "jwt.token.here"
-}
-```
-
-**POST** `/auth/login`
-```json
-// Request
-{
-  "email": "joao@example.com",
-  "password": "SenhaSegura123!"
-}
-
-// Response 200
-{
-  "user": { ... },
-  "token": "jwt.token.here"
-}
-```
-
-#### Eventos
-
-**GET** `/events?page=1&limit=10` (Público)
-```json
-// Response 200
-{
-  "success": true,
-  "data": [...],
-  "pagination": {
-    "page": 1,
-    "limit": 10,
-    "total": 45,
-    "totalPages": 5,
-    "hasNextPage": true,
-    "hasPreviousPage": false
-  }
-}
-```
-
-**GET** `/events/:id` (Público)
-
-**POST** `/events` (Autenticado)
-
-**PUT** `/events/:id` (Autenticado, apenas dono)
-
-**DELETE** `/events/:id` (Autenticado, apenas dono, sem tickets vendidos)
-
-**GET** `/events/my-events` (Autenticado)
-
-#### Ingressos
-
-**POST** `/tickets` (Autenticado)
-```json
-// Request
-{
-  "event_id": "uuid"
-}
-
-// Response 201
-{
-  "success": true,
-  "message": "Ticket reserved successfully",
-  "data": { ... }
-}
-```
-
-**GET** `/tickets?page=1&limit=10` (Autenticado)
-
-Para documentação completa, veja [CHALLENGE.md](./CHALLENGE.md).
-
-## 🧪 Testes
-
-### Estratégia de Testes
-
-O projeto segue a pirâmide de testes:
-- **60%** Unit Tests
-- **30%** Integration Tests
-- **10%** E2E Tests
-
-Para detalhes completos, veja [server/TESTING_STRATEGY.md](./server/TESTING_STRATEGY.md).
-
-### Executar Testes
-
-```bash
-# Todos os testes
-bun test
-
-# Apenas unit tests
-bun test __tests__/unit
-
-# Apenas integration tests
-bun test __tests__/integration
-
-# Com coverage
-bun test --coverage
-```
-
-## 🔄 CI/CD
-
-Pipeline automatizado com GitHub Actions:
-
-- ✅ **Lint & Type Check**: Biome + TypeScript
-- ✅ **Tests**: Suite completa de testes
-- ✅ **Build**: Client + Server
-- ✅ **Docker Build**: Validação de imagens
-
-Ver [.github/workflows/ci.yml](./.github/workflows/ci.yml).
 
 ## 💪 Desafios Técnicos Resolvidos
 
@@ -460,26 +228,6 @@ export type Event = { ... };
 import type { Event } from 'shared';
 ```
 
-## 🔮 Melhorias Futuras
-
-- [ ] **WebSocket**: Atualização em tempo real de quantidade de ingressos
-- [ ] **Payment Gateway**: Integração com Stripe/MercadoPago
-- [ ] **Email Service**: Confirmação de reserva por email
-- [ ] **QR Code**: Geração de QR code para ingressos
-- [ ] **Admin Dashboard**: Painel administrativo com métricas
-- [ ] **Rate Limiting**: Proteção contra abuso de API
-- [ ] **GraphQL**: Alternativa à REST API
-- [ ] **Mobile App**: React Native para iOS/Android
-- [ ] **Internacionalização**: Suporte multi-idioma
-- [ ] **Analytics**: Rastreamento de eventos com Google Analytics
-
-## 📄 Documentação Adicional
-
-- 📘 [Challenge Requirements](./CHALLENGE.md) - Requisitos do desafio
-- 🐳 [Docker Setup](./DOCKER.md) - Guia completo de Docker
-- 🧪 [Testing Strategy](./server/TESTING_STRATEGY.md) - Estratégia de testes
-- ⚡ [Redis & Pagination](./REDIS_PAGINATION.md) - Implementação detalhada
-
 ## 🤝 Desenvolvimento
 
 ### Scripts Disponíveis
@@ -519,11 +267,11 @@ Configuração: [biome.json](./biome.json)
 
 ## 👤 Autor
 
-**Douglas Calliari**
+**Daniel Calliari**
 
-- LinkedIn: [linkedin.com/in/douglascalliari](https://linkedin.com/in/douglascalliari)
+- LinkedIn: [linkedin.com/in/danielcalliari](https://linkedin.com/in/daniel-calliari)
 - GitHub: [@dcalliari](https://github.com/dcalliari)
-- Email: contato@douglascalliari.com
+- Email: daniel@calliari.dev
 
 ## 📝 Licença
 
