@@ -12,6 +12,9 @@ const envSchema = z.object({
 	DATABASE_URL: z
 		.url("Invalid database URL")
 		.default("postgresql://postgres:postgres@localhost:5432/tickzi_db"),
+	TEST_DATABASE_URL: z
+		.url("Invalid test database URL")
+		.default("postgresql://postgres:postgres@localhost:5432/tickzi_db_test"),
 	FRONTEND_URL: z.url("Invalid frontend URL").default("http://localhost:5173"),
 	JWT_SECRET: z.string().min(32, "JWT secret must be at least 32 characters"),
 	REDIS_URL: z.string().default("redis://localhost:6379"),
