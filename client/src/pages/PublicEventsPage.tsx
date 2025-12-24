@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { AppLayout } from "@/components/AppLayout";
 import { EmptyState } from "@/components/EmptyState";
@@ -6,16 +7,38 @@ import { EventCard } from "@/components/EventCard";
 import { PaginationControls } from "@/components/PaginationControls";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEvents } from "@/hooks/useEvents";
+import { ticketsService } from "@/services/tickets.service";
 
 export function PublicEventsPage() {
-	const { user } = useAuth();
+	const { user, token } = useAuth();
 	const { events, pagination, isLoading, error, fetchEvents } = useEvents();
-	const [bookingEventId] = useState<string | null>(null);
-	const [bookingError] = useState("");
+	const [bookingEventId, setBookingEventId] = useState<string | null>(null);
+	const [bookingError, setBookingError] = useState("");
+	const navigate = useNavigate();
 
 	const handlePageChange = (newPage: number) => {
 		fetchEvents(newPage);
 		window.scrollTo({ top: 0, behavior: "smooth" });
+	};
+
+	const handleBookTicket = async (eventId: string) => {
+		setBookingEventId(eventId);
+		setBookingError("");
+
+		try {
+			if (!token) throw new Error("Not authenticated");
+
+			await ticketsService.bookTicket(token, { event_id: eventId });
+			await fetchEvents();
+			toast.success("Ticket booked successfully!");
+			navigate("/tickets");
+		} catch (err) {
+			setBookingError(
+				err instanceof Error ? err.message : "Failed to book ticket",
+			);
+		} finally {
+			setBookingEventId(null);
+		}
 	};
 
 	useEffect(() => {
@@ -62,6 +85,7 @@ export function PublicEventsPage() {
 								event={event}
 								showBookButton
 								requiresAuth={!user}
+								onBook={handleBookTicket}
 								isBooking={bookingEventId === event.id}
 							/>
 						))}
