@@ -1,5 +1,6 @@
 import "../../setup/hooks";
 import { beforeAll, describe, expect, test } from "bun:test";
+import type { Hono } from "hono";
 import {
 	expectApiSuccess,
 	expectPaginationResponse,
@@ -7,7 +8,7 @@ import {
 } from "../../helpers/assertions";
 import { createTestUser } from "../../helpers/factories";
 
-let app: any;
+let app: Hono;
 
 beforeAll(async () => {
 	const module = await import("../../../src/index");
@@ -63,9 +64,7 @@ describe("Events Routes Integration", () => {
 				}),
 			});
 
-			if (process.env.NODE_ENV === "production") {
-				expect(res.status).toBe(401);
-			}
+			expect(res.status).toBe(401);
 		});
 
 		test("should reject invalid ticket quantity", async () => {

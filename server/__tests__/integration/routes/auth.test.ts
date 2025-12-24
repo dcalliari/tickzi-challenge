@@ -1,8 +1,9 @@
 import "../../setup/hooks";
 import { beforeAll, describe, expect, test } from "bun:test";
+import type { Hono } from "hono";
 import { expectUUID } from "../../helpers/assertions";
 
-let app: any;
+let app: Hono;
 
 beforeAll(async () => {
 	const module = await import("../../../src/index");
@@ -35,7 +36,6 @@ describe("Auth Routes Integration", () => {
 		});
 
 		test("should reject duplicate email", async () => {
-			// Register first user
 			await app.request("/api/auth/register", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
@@ -46,7 +46,6 @@ describe("Auth Routes Integration", () => {
 				}),
 			});
 
-			// Try to register again with same email
 			const res = await app.request("/api/auth/register", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
@@ -122,7 +121,6 @@ describe("Auth Routes Integration", () => {
 
 	describe("POST /api/auth/login", () => {
 		test("should login successfully with correct credentials", async () => {
-			// Register user first
 			await app.request("/api/auth/register", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
@@ -133,7 +131,6 @@ describe("Auth Routes Integration", () => {
 				}),
 			});
 
-			// Login
 			const res = await app.request("/api/auth/login", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
@@ -152,7 +149,6 @@ describe("Auth Routes Integration", () => {
 		});
 
 		test("should reject incorrect password", async () => {
-			// Register user first
 			await app.request("/api/auth/register", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
@@ -163,7 +159,6 @@ describe("Auth Routes Integration", () => {
 				}),
 			});
 
-			// Try to login with wrong password
 			const res = await app.request("/api/auth/login", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
@@ -220,7 +215,6 @@ describe("Auth Routes Integration", () => {
 		});
 
 		test("should be case-sensitive for password", async () => {
-			// Register user
 			await app.request("/api/auth/register", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
@@ -231,7 +225,6 @@ describe("Auth Routes Integration", () => {
 				}),
 			});
 
-			// Try login with lowercase password
 			const res = await app.request("/api/auth/login", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
