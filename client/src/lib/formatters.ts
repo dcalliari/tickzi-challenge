@@ -1,5 +1,5 @@
 export const formatDate = (dateString: string) =>
-	new Date(dateString).toLocaleDateString("pt-BR", {
+	new Date(dateString).toLocaleDateString("UTC", {
 		year: "numeric",
 		month: "long",
 		day: "numeric",
