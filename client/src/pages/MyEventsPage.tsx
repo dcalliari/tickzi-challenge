@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { EmptyState } from "@/components/EmptyState";
 import { ManageEventCard } from "@/components/ManageEventCard";
+import { PaginationControls } from "@/components/PaginationControls";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEvents } from "@/hooks/useEvents";
@@ -12,6 +13,11 @@ export function MyEventsPage() {
 		myEvents: true,
 		token,
 	});
+
+	const handlePageChange = (newPage: number) => {
+		fetchEvents(newPage);
+		window.scrollTo({ top: 0, behavior: "smooth" });
+	};
 
 	const handleEventUpdated = () => {
 		fetchEvents(pagination.page);
@@ -42,15 +48,22 @@ export function MyEventsPage() {
 					actionPath="/events/create"
 				/>
 			) : (
-				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-					{events.map((event) => (
-						<ManageEventCard
-							key={event.id}
-							event={event}
-							onEventUpdated={handleEventUpdated}
-						/>
-					))}
-				</div>
+				<>
+					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+						{events.map((event) => (
+							<ManageEventCard
+								key={event.id}
+								event={event}
+								onEventUpdated={handleEventUpdated}
+							/>
+						))}
+					</div>
+					<PaginationControls
+						pagination={pagination}
+						isLoading={isLoading}
+						onPageChange={handlePageChange}
+					/>
+				</>
 			)}
 		</AppLayout>
 	);

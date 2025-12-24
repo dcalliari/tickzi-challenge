@@ -3,14 +3,20 @@ import { toast } from "sonner";
 import { AppLayout } from "@/components/AppLayout";
 import { EmptyState } from "@/components/EmptyState";
 import { EventCard } from "@/components/EventCard";
+import { PaginationControls } from "@/components/PaginationControls";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEvents } from "@/hooks/useEvents";
 
 export function PublicEventsPage() {
 	const { user } = useAuth();
-	const { events, isLoading, error } = useEvents();
+	const { events, pagination, isLoading, error, fetchEvents } = useEvents();
 	const [bookingEventId] = useState<string | null>(null);
 	const [bookingError] = useState("");
+
+	const handlePageChange = (newPage: number) => {
+		fetchEvents(newPage);
+		window.scrollTo({ top: 0, behavior: "smooth" });
+	};
 
 	useEffect(() => {
 		if (error || bookingError) {
@@ -48,17 +54,24 @@ export function PublicEventsPage() {
 					actionPath={user ? "/events/create" : "/login"}
 				/>
 			) : (
-				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-					{events.map((event) => (
-						<EventCard
-							key={event.id}
-							event={event}
-							showBookButton
-							requiresAuth={!user}
-							isBooking={bookingEventId === event.id}
-						/>
-					))}
-				</div>
+				<>
+					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+						{events.map((event) => (
+							<EventCard
+								key={event.id}
+								event={event}
+								showBookButton
+								requiresAuth={!user}
+								isBooking={bookingEventId === event.id}
+							/>
+						))}
+					</div>
+					<PaginationControls
+						pagination={pagination}
+						isLoading={isLoading}
+						onPageChange={handlePageChange}
+					/>
+				</>
 			)}
 		</AppLayout>
 	);
