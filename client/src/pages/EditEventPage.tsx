@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
 import { eventsService } from "@/services/events.service";
@@ -97,10 +98,39 @@ export function EditEventPage() {
 	if (isLoading) {
 		return (
 			<AppLayout>
-				<div className="flex items-center justify-center min-h-[50vh]">
-					<div className="text-center py-12">
-						<p className="text-gray-600">Loading event...</p>
-					</div>
+				<div className="max-w-2xl mx-auto">
+					<Skeleton className="h-10 w-48 mb-6" />
+					<Card>
+						<CardHeader>
+							<Skeleton className="h-7 w-40 mb-2" />
+							<Skeleton className="h-4 w-64" />
+						</CardHeader>
+						<CardContent className="space-y-6">
+							<div className="space-y-2">
+								<Skeleton className="h-4 w-20" />
+								<Skeleton className="h-10 w-full" />
+							</div>
+							<div className="space-y-2">
+								<Skeleton className="h-4 w-20" />
+								<Skeleton className="h-24 w-full" />
+							</div>
+							<div className="grid grid-cols-2 gap-4">
+								<Skeleton className="h-10 w-full" />
+								<Skeleton className="h-10 w-full" />
+							</div>
+							<div className="space-y-2">
+								<Skeleton className="h-4 w-20" />
+								<Skeleton className="h-10 w-full" />
+							</div>
+							<div className="grid grid-cols-2 gap-4">
+								<Skeleton className="h-10 w-full" />
+								<Skeleton className="h-10 w-full" />
+							</div>
+						</CardContent>
+						<CardFooter>
+							<Skeleton className="h-10 w-full" />
+						</CardFooter>
+					</Card>
 				</div>
 			</AppLayout>
 		);

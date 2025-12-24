@@ -5,6 +5,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { EmptyState } from "@/components/EmptyState";
 import { EventCard } from "@/components/EventCard";
 import { PaginationControls } from "@/components/PaginationControls";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEvents } from "@/hooks/useEvents";
 import { ticketsService } from "@/services/tickets.service";
@@ -49,13 +50,28 @@ export function PublicEventsPage() {
 		}
 	}, [error, bookingError]);
 
+	const header = (
+		<div className="mb-8">
+			<h1 className="text-4xl font-bold text-gray-900">Available Events</h1>
+			<p className="text-gray-600 mt-2">
+				Browse and book tickets for upcoming events
+			</p>
+		</div>
+	);
+
 	if (isLoading) {
 		return (
 			<AppLayout>
-				<div className="flex items-center justify-center min-h-[50vh]">
-					<div className="text-center py-12">
-						<p className="text-gray-600">Loading events...</p>
-					</div>
+				{header}
+				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+					{Array.from({ length: 6 }).map((_, i) => (
+						<div key={i} className="space-y-3">
+							<Skeleton className="h-48 w-full" />
+							<Skeleton className="h-6 w-3/4" />
+							<Skeleton className="h-4 w-full" />
+							<Skeleton className="h-4 w-2/3" />
+						</div>
+					))}
 				</div>
 			</AppLayout>
 		);
@@ -63,13 +79,7 @@ export function PublicEventsPage() {
 
 	return (
 		<AppLayout>
-			<div className="mb-8">
-				<h1 className="text-4xl font-bold text-gray-900">Available Events</h1>
-				<p className="text-gray-600 mt-2">
-					Browse and book tickets for upcoming events
-				</p>
-			</div>
-
+			{header}
 			{events.length === 0 ? (
 				<EmptyState
 					message="No events available yet. Check back later to see new events!"

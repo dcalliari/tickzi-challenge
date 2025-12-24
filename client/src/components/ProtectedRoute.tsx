@@ -1,4 +1,5 @@
 import { Navigate } from "react-router-dom";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -6,8 +7,12 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 	if (isLoading) {
 		return (
-			<div className="min-h-screen flex items-center justify-center">
-				<p className="text-gray-600">Loading...</p>
+			<div className="min-h-screen flex items-center justify-center p-4">
+				<div className="w-full max-w-md space-y-4">
+					<Skeleton className="h-12 w-full" />
+					<Skeleton className="h-64 w-full" />
+					<Skeleton className="h-12 w-full" />
+				</div>
 			</div>
 		);
 	}

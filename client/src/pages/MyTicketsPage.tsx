@@ -11,6 +11,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDate, formatPrice } from "@/lib/formatters";
 import { type Ticket, ticketsService } from "@/services/tickets.service";
@@ -73,10 +74,29 @@ export function MyTicketsPage() {
 			</div>
 
 			{isLoading ? (
-				<div className="flex items-center justify-center min-h-[50vh]">
-					<div className="text-center py-12">
-						<p className="text-gray-600">Loading tickets...</p>
-					</div>
+				<div className="space-y-4">
+					{Array.from({ length: 5 }).map((_, i) => (
+						<Card key={i}>
+							<CardHeader>
+								<div className="flex items-start justify-between">
+									<div className="flex-1">
+										<Skeleton className="h-6 w-48 mb-2" />
+										<Skeleton className="h-4 w-32" />
+									</div>
+									<div>
+										<Skeleton className="h-6 w-20" />
+									</div>
+								</div>
+							</CardHeader>
+							<CardContent>
+								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+									<Skeleton className="h-12 w-full" />
+									<Skeleton className="h-12 w-full" />
+								</div>
+								<Skeleton className="h-16 w-full mt-4" />
+							</CardContent>
+						</Card>
+					))}
 				</div>
 			) : tickets.length === 0 ? (
 				<EmptyState

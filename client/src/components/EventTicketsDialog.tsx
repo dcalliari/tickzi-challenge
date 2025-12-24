@@ -10,6 +10,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDate } from "@/lib/formatters";
 import {
@@ -77,12 +78,6 @@ export function EventTicketsDialog({
 		};
 
 		fetchTickets();
-
-		// document.body.style.overflow = "hidden";
-
-		// return () => {
-		// 	document.body.style.overflow = "unset";
-		// };
 	}, [isOpen, token, eventId]);
 
 	const handlePageChange = async (newPage: number) => {
@@ -143,10 +138,22 @@ export function EventTicketsDialog({
 					)}
 
 					{isLoading ? (
-						<div className="flex items-center justify-center min-h-[50vh]">
-							<div className="text-center py-12">
-								<p className="text-gray-600">Loading tickets...</p>
-							</div>
+						<div className="space-y-4">
+							{Array.from({ length: 5 }).map((_, i) => (
+								<Card key={i}>
+									<CardHeader>
+										<div className="flex items-start justify-between">
+											<div className="flex-1">
+												<Skeleton className="h-5 w-32 mb-2" />
+												<Skeleton className="h-4 w-24" />
+											</div>
+											<div>
+												<Skeleton className="h-4 w-20" />
+											</div>
+										</div>
+									</CardHeader>
+								</Card>
+							))}
 						</div>
 					) : tickets.length === 0 ? (
 						<EmptyState
