@@ -1,6 +1,7 @@
 import { Calendar, Edit, MapPin, Ticket, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,7 +41,9 @@ export function ManageEventCard({
 			await eventsService.deleteEvent(token, event.id);
 			onEventUpdated();
 		} catch (err) {
-			alert(err instanceof Error ? err.message : "Failed to delete event");
+			toast.error(
+				err instanceof Error ? err.message : "Failed to delete event",
+			);
 		} finally {
 			setIsDeleting(false);
 		}
