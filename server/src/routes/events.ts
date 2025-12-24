@@ -1,6 +1,10 @@
 import { zValidator } from "@hono/zod-validator";
 import { db } from "@server/db";
-import { eventsInTickzi, ticketsInTickzi } from "@server/db/schema";
+import {
+	eventsInTickzi,
+	ticketsInTickzi,
+	usersInTickzi,
+} from "@server/db/schema";
 import { authenticateToken } from "@server/lib/auth";
 import {
 	CACHE_KEYS,
@@ -151,6 +155,80 @@ export const eventRoutes = new Hono<{
 		}
 	})
 
+	.get(
+		"/:id/tickets",
+		authenticateToken,
+		zValidator("query", paginationSchema),
+		async (c) => {
+			try {
+				const { id } = c.req.param();
+				const userPayload = c.get("user");
+				const { page, limit } = c.req.valid("query");
+				const offset = (page - 1) * limit;
+
+				const [event] = await db
+					.select()
+					.from(eventsInTickzi)
+					.where(eq(eventsInTickzi.id, id))
+					.limit(1);
+
+				if (!event) {
+					return c.json({ success: false, error: "Event not found" }, 404);
+				}
+
+				if (event.user_id !== userPayload.userId) {
+					return c.json({ success: false, error: "Unauthorized" }, 403);
+				}
+
+				const [totalResult] = await db
+					.select({ count: count() })
+					.from(ticketsInTickzi)
+					.where(eq(ticketsInTickzi.event_id, id));
+
+				const total = totalResult?.count || 0;
+				const totalPages = Math.ceil(total / limit);
+
+				const tickets = await db
+					.select({
+						id: ticketsInTickzi.id,
+						purchased_at: ticketsInTickzi.purchased_at,
+						user: {
+							id: usersInTickzi.id,
+							name: usersInTickzi.name,
+							email: usersInTickzi.email,
+						},
+					})
+					.from(ticketsInTickzi)
+					.innerJoin(
+						usersInTickzi,
+						eq(ticketsInTickzi.user_id, usersInTickzi.id),
+					)
+					.where(eq(ticketsInTickzi.event_id, id))
+					.orderBy(desc(ticketsInTickzi.purchased_at))
+					.limit(limit)
+					.offset(offset);
+
+				const response: PaginatedResponse<(typeof tickets)[0]> = {
+					success: true,
+					data: tickets,
+					pagination: {
+						page,
+						limit,
+						total,
+						totalPages,
+						hasNextPage: page < totalPages,
+						hasPreviousPage: page > 1,
+					},
+				};
+
+				return c.json(response, 200);
+			} catch (error) {
+				console.error("Error fetching event tickets:", error);
+				return c.json({ error: "Internal server error" }, 500);
+			}
+		},
+	)
+
 	.post(
 		"/",
 		authenticateToken,
@@ -243,7 +321,6 @@ export const eventRoutes = new Hono<{
 		},
 	)
 
-	// TODO: Apenas se não houver vendas
 	.delete("/:id", authenticateToken, async (c) => {
 		try {
 			const { id } = c.req.param();
