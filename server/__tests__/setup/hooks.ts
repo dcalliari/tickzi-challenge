@@ -6,6 +6,8 @@ import {
 } from "./database";
 import { clearRedis, setupTestRedis } from "./redis";
 
+process.env.NODE_ENV = "test";
+
 beforeAll(async () => {
 	setupTestRedis();
 	await setupTestDatabase();
