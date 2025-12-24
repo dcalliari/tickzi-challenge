@@ -16,15 +16,6 @@ export interface Event {
 	created_at: string;
 }
 
-export interface Pagination {
-	page: number;
-	limit: number;
-	total: number;
-	totalPages: number;
-	hasNextPage: boolean;
-	hasPreviousPage: boolean;
-}
-
 export interface EventsResponse {
 	data: Event[];
 	pagination: Pagination;
