@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
+import { DateTimePicker } from "@/components/DateTimePicker";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -19,7 +20,8 @@ import { eventsService } from "@/services/events.service";
 export function CreateEventPage() {
 	const [title, setTitle] = useState("");
 	const [description, setDescription] = useState("");
-	const [date, setDate] = useState("");
+	const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+	const [selectedTime, setSelectedTime] = useState("10:00");
 	const [location, setLocation] = useState("");
 	const [ticketQuantity, setTicketQuantity] = useState("");
 	const [ticketPrice, setTicketPrice] = useState("");
@@ -35,11 +37,16 @@ export function CreateEventPage() {
 
 		try {
 			if (!token) throw new Error("Not authenticated");
+			if (!selectedDate) throw new Error("Please select a date");
+
+			const [hours, minutes] = selectedTime.split(":").map(Number);
+			const dateTime = new Date(selectedDate);
+			dateTime.setHours(hours, minutes, 0, 0);
 
 			await eventsService.createEvent(token, {
 				title,
 				description: description || undefined,
-				date: new Date(date).toISOString(),
+				date: dateTime.toISOString(),
 				location,
 				ticket_quantity: Number.parseInt(ticketQuantity, 10),
 				ticket_price: Math.round(Number.parseFloat(ticketPrice) * 100),
@@ -87,16 +94,14 @@ export function CreateEventPage() {
 								/>
 							</div>
 
-							<div className="space-y-2">
-								<Label htmlFor="date">Event Date & Time *</Label>
-								<Input
-									id="date"
-									type="datetime-local"
-									value={date}
-									onChange={(e) => setDate(e.target.value)}
-									required
-								/>
-							</div>
+							<DateTimePicker
+								label="Event Date & Time"
+								selectedDate={selectedDate}
+								selectedTime={selectedTime}
+								onDateChange={setSelectedDate}
+								onTimeChange={setSelectedTime}
+								required
+							/>
 
 							<div className="space-y-2">
 								<Label htmlFor="location">Location *</Label>
