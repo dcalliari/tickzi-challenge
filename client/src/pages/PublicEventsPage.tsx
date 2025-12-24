@@ -1,9 +1,15 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AppLayout } from "@/components/AppLayout";
+import { EmptyState } from "@/components/EmptyState";
+import { EventCard } from "@/components/EventCard";
+import { useAuth } from "@/contexts/AuthContext";
+import { useEvents } from "@/hooks/useEvents";
 
 export function PublicEventsPage() {
+	const { user } = useAuth();
 	const { events, isLoading, error } = useEvents();
+	const [bookingEventId] = useState<string | null>(null);
 	const [bookingError] = useState("");
 
 	useEffect(() => {
@@ -36,11 +42,21 @@ export function PublicEventsPage() {
 			</div>
 
 			{events.length === 0 ? (
-				<>empty</>
+				<EmptyState
+					message="No events available yet. Check back later to see new events!"
+					actionLabel={user ? "Create Event" : "Login to Create Event"}
+					actionPath={user ? "/events/create" : "/login"}
+				/>
 			) : (
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 					{events.map((event) => (
-						<>cards</>
+						<EventCard
+							key={event.id}
+							event={event}
+							showBookButton
+							requiresAuth={!user}
+							isBooking={bookingEventId === event.id}
+						/>
 					))}
 				</div>
 			)}
