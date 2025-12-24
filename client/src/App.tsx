@@ -3,6 +3,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CreateEventPage } from "@/pages/CreateEventPage";
+import { EditEventPage } from "@/pages/EditEventPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { MyEventsPage } from "@/pages/MyEventsPage";
 import { PublicEventsPage } from "@/pages/PublicEventsPage";
@@ -30,6 +31,14 @@ function App() {
 						element={
 							<ProtectedRoute>
 								<CreateEventPage />
+							</ProtectedRoute>
+						}
+					/>
+					<Route
+						path="/events/:id/edit"
+						element={
+							<ProtectedRoute>
+								<EditEventPage />
 							</ProtectedRoute>
 						}
 					/>
