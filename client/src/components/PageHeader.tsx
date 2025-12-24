@@ -1,3 +1,4 @@
+import { Ticket } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
@@ -18,10 +19,12 @@ export function PageHeader({ user, onLogout }: PageHeaderProps) {
 						<>
 							<span className="text-sm text-gray-600">Hi, {user.name}!</span>
 							<Button asChild variant="outline">
-								<Link to="/tickets">My Tickets</Link>
+								<Link to="/events">My Events</Link>
 							</Button>
 							<Button asChild variant="outline">
-								<Link to="/events">My Events</Link>
+								<Link to="/tickets">
+									<Ticket />
+								</Link>
 							</Button>
 							<Button onClick={onLogout}>Logout</Button>
 						</>
