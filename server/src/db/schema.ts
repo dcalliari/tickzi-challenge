@@ -18,7 +18,9 @@ export const usersInTickzi = tickzi.table(
 		name: varchar({ length: 255 }).notNull(),
 		email: varchar({ length: 255 }).notNull(),
 		password_hash: varchar({ length: 255 }).notNull(),
-		created_at: timestamp({ mode: "string" }).default(sql`CURRENT_TIMESTAMP`),
+		created_at: timestamp({ mode: "string", withTimezone: true }).default(
+			sql`CURRENT_TIMESTAMP`,
+		),
 	},
 	(table) => [unique("users_email_key").on(table.email)],
 );
@@ -30,11 +32,13 @@ export const eventsInTickzi = tickzi.table("events", {
 		.references(() => usersInTickzi.id, { onDelete: "cascade" }),
 	title: varchar({ length: 255 }).notNull(),
 	description: text(),
-	date: timestamp({ mode: "string" }).notNull(),
+	date: timestamp({ mode: "string", withTimezone: true }).notNull(),
 	location: varchar({ length: 255 }).notNull(),
 	ticket_quantity: integer().notNull(),
 	ticket_price: integer().notNull(),
-	created_at: timestamp({ mode: "string" }).default(sql`CURRENT_TIMESTAMP`),
+	created_at: timestamp({ mode: "string", withTimezone: true }).default(
+		sql`CURRENT_TIMESTAMP`,
+	),
 });
 
 export const ticketsInTickzi = tickzi.table("tickets", {
@@ -45,5 +49,7 @@ export const ticketsInTickzi = tickzi.table("tickets", {
 	user_id: uuid()
 		.notNull()
 		.references(() => usersInTickzi.id, { onDelete: "cascade" }),
-	purchased_at: timestamp({ mode: "string" }).default(sql`CURRENT_TIMESTAMP`),
+	purchased_at: timestamp({ mode: "string", withTimezone: true }).default(
+		sql`CURRENT_TIMESTAMP`,
+	),
 });
