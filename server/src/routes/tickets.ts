@@ -2,13 +2,20 @@ import { zValidator } from "@hono/zod-validator";
 import { db } from "@server/db";
 import { eventsInTickzi, ticketsInTickzi } from "@server/db/schema";
 import { authenticateToken } from "@server/lib/auth";
-import { CACHE_KEYS, invalidateCache } from "@server/lib/redis";
+import {
+	CACHE_KEYS,
+	CACHE_TTL,
+	getCachedData,
+	invalidateCache,
+	setCachedData,
+} from "@server/lib/redis";
 import { paginationSchema } from "@server/schemas/pagination";
 import { reserveTicketSchema } from "@server/schemas/tickets";
 import type { PaginatedResponse } from "@server/types";
-import { and, count, desc, eq, sql } from "drizzle-orm";
+import { and, count, desc, eq, ilike, or, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import type { Bindings, Variables } from "hono/types";
+import { z } from "zod";
 
 type TicketWithEvent = {
 	id: string;
@@ -27,6 +34,85 @@ export const ticketRoutes = new Hono<{
 	Bindings: Bindings;
 	Variables: Variables;
 }>()
+
+	.get(
+		"/search",
+		authenticateToken,
+		zValidator(
+			"query",
+			z.object({
+				q: z.string().min(1).max(255),
+				limit: z.coerce.number().int().positive().max(50).default(10),
+			}),
+		),
+		async (c) => {
+			try {
+				const userPayload = c.get("user");
+				const { q, limit } = c.req.valid("query");
+
+				const cacheKey = `${CACHE_KEYS.TICKETS_SEARCH(userPayload.userId, q)}:${limit}`;
+				const cachedResults = await getCachedData<TicketWithEvent[]>(cacheKey);
+
+				if (cachedResults) {
+					return c.json(
+						{
+							success: true,
+							data: cachedResults,
+							query: q,
+						},
+						200,
+					);
+				}
+
+				const searchPattern = `%${q}%`;
+
+				const tickets = await db
+					.select({
+						id: ticketsInTickzi.id,
+						purchased_at: ticketsInTickzi.purchased_at,
+						event: {
+							id: eventsInTickzi.id,
+							title: eventsInTickzi.title,
+							description: eventsInTickzi.description,
+							date: eventsInTickzi.date,
+							location: eventsInTickzi.location,
+							ticket_price: eventsInTickzi.ticket_price,
+						},
+					})
+					.from(ticketsInTickzi)
+					.innerJoin(
+						eventsInTickzi,
+						eq(ticketsInTickzi.event_id, eventsInTickzi.id),
+					)
+					.where(
+						and(
+							eq(ticketsInTickzi.user_id, userPayload.userId),
+							or(
+								ilike(eventsInTickzi.title, searchPattern),
+								ilike(eventsInTickzi.description, searchPattern),
+								ilike(eventsInTickzi.location, searchPattern),
+							),
+						),
+					)
+					.orderBy(desc(ticketsInTickzi.purchased_at))
+					.limit(limit);
+
+				await setCachedData(cacheKey, tickets, CACHE_TTL.SEARCH);
+
+				return c.json(
+					{
+						success: true,
+						data: tickets,
+						query: q,
+					},
+					200,
+				);
+			} catch (error) {
+				console.error("Error searching tickets:", error);
+				return c.json({ error: "Internal server error" }, 500);
+			}
+		},
+	)
 
 	.post(
 		"/",
@@ -98,7 +184,8 @@ export const ticketRoutes = new Hono<{
 
 				await invalidateCache(`${CACHE_KEYS.EVENTS_LIST}:*`);
 				await invalidateCache(CACHE_KEYS.EVENT_DETAIL(event_id));
-
+				await invalidateCache(`events:search:*`);
+				await invalidateCache(`tickets:${userPayload.userId}:search:*`);
 				return c.json(
 					{
 						success: true,

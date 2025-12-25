@@ -16,9 +16,10 @@ import {
 import { createEventSchema, updateEventSchema } from "@server/schemas/events";
 import { paginationSchema } from "@server/schemas/pagination";
 import type { PaginatedResponse } from "@server/types";
-import { asc, count, desc, eq, gt } from "drizzle-orm";
+import { and, asc, count, desc, eq, gt, ilike, or, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import type { Bindings, Variables } from "hono/types";
+import { z } from "zod";
 
 type Event = typeof eventsInTickzi.$inferSelect;
 
@@ -26,6 +27,132 @@ export const eventRoutes = new Hono<{
 	Bindings: Bindings;
 	Variables: Variables;
 }>()
+
+	.get(
+		"/search",
+		zValidator(
+			"query",
+			z.object({
+				q: z.string().min(1).max(255),
+				limit: z.coerce.number().int().positive().max(50).default(10),
+			}),
+		),
+		async (c) => {
+			try {
+				const { q, limit } = c.req.valid("query");
+
+				const cacheKey = `${CACHE_KEYS.EVENTS_SEARCH(q)}:${limit}`;
+				const cachedResults = await getCachedData<Event[]>(cacheKey);
+
+				if (cachedResults) {
+					return c.json(
+						{
+							success: true,
+							data: cachedResults,
+							query: q,
+						},
+						200,
+					);
+				}
+
+				const searchPattern = `%${q}%`;
+
+				const events = await db
+					.select()
+					.from(eventsInTickzi)
+					.where(
+						and(
+							gt(eventsInTickzi.ticket_quantity, 0),
+							or(
+								ilike(eventsInTickzi.title, searchPattern),
+								ilike(eventsInTickzi.description, searchPattern),
+								ilike(eventsInTickzi.location, searchPattern),
+							),
+						),
+					)
+					.orderBy(asc(eventsInTickzi.date))
+					.limit(limit);
+
+				await setCachedData(cacheKey, events, CACHE_TTL.SEARCH);
+
+				return c.json(
+					{
+						success: true,
+						data: events,
+						query: q,
+					},
+					200,
+				);
+			} catch (error) {
+				console.error("Error searching events:", error);
+				return c.json({ error: "Internal server error" }, 500);
+			}
+		},
+	)
+
+	.get(
+		"/my-events/search",
+		authenticateToken,
+		zValidator(
+			"query",
+			z.object({
+				q: z.string().min(1).max(255),
+				limit: z.coerce.number().int().positive().max(50).default(10),
+			}),
+		),
+		async (c) => {
+			try {
+				const userPayload = c.get("user");
+				const { q, limit } = c.req.valid("query");
+
+				const cacheKey = `${CACHE_KEYS.MY_EVENTS_SEARCH(userPayload.userId, q)}:${limit}`;
+				const cachedResults = await getCachedData<Event[]>(cacheKey);
+
+				if (cachedResults) {
+					return c.json(
+						{
+							success: true,
+							data: cachedResults,
+							query: q,
+						},
+						200,
+					);
+				}
+
+				const searchPattern = `%${q}%`;
+
+				const events = await db
+					.select()
+					.from(eventsInTickzi)
+					.where(
+						and(
+							eq(eventsInTickzi.user_id, userPayload.userId),
+							or(
+								ilike(eventsInTickzi.title, searchPattern),
+								ilike(eventsInTickzi.description, searchPattern),
+								ilike(eventsInTickzi.location, searchPattern),
+							),
+						),
+					)
+					.orderBy(asc(eventsInTickzi.date))
+					.limit(limit);
+
+				await setCachedData(cacheKey, events, CACHE_TTL.SEARCH);
+
+				return c.json(
+					{
+						success: true,
+						data: events,
+						query: q,
+					},
+					200,
+				);
+			} catch (error) {
+				console.error("Error searching user's events:", error);
+				return c.json({ error: "Internal server error" }, 500);
+			}
+		},
+	)
 
 	.get("/", zValidator("query", paginationSchema), async (c) => {
 		try {
@@ -252,7 +379,8 @@ export const eventRoutes = new Hono<{
 					.returning();
 
 				await invalidateCache(`${CACHE_KEYS.EVENTS_LIST}:*`);
-
+				await invalidateCache(`events:search:*`);
+				await invalidateCache(`events:my:${userPayload.userId}:search:*`);
 				return c.json(
 					{
 						success: true,
@@ -305,7 +433,8 @@ export const eventRoutes = new Hono<{
 
 				await invalidateCache(`${CACHE_KEYS.EVENTS_LIST}:*`);
 				await invalidateCache(CACHE_KEYS.EVENT_DETAIL(id));
-
+				await invalidateCache(`events:search:*`);
+				await invalidateCache(`events:my:${userPayload.userId}:search:*`);
 				return c.json(
 					{
 						success: true,
@@ -356,6 +485,8 @@ export const eventRoutes = new Hono<{
 
 			await invalidateCache(`${CACHE_KEYS.EVENTS_LIST}:*`);
 			await invalidateCache(CACHE_KEYS.EVENT_DETAIL(id));
+			await invalidateCache(`events:search:*`);
+			await invalidateCache(`events:my:${userPayload.userId}:search:*`);
 
 			return c.json(
 				{ success: true, message: "Event deleted successfully" },

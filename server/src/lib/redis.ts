@@ -31,11 +31,17 @@ export { redis };
 export const CACHE_KEYS = {
 	EVENTS_LIST: "events:list",
 	EVENT_DETAIL: (id: string) => `event:${id}`,
+	EVENTS_SEARCH: (query: string) => `events:search:${query.toLowerCase()}`,
+	MY_EVENTS_SEARCH: (userId: string, query: string) =>
+		`events:my:${userId}:search:${query.toLowerCase()}`,
+	TICKETS_SEARCH: (userId: string, query: string) =>
+		`tickets:${userId}:search:${query.toLowerCase()}`,
 } as const;
 
 export const CACHE_TTL = {
-	EVENTS_LIST: 60,
+	EVENTS_LIST: 300,
 	EVENT_DETAIL: 300,
+	SEARCH: 30,
 } as const;
 
 export async function getCachedData<T>(key: string): Promise<T | null> {
