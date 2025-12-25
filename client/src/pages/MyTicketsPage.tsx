@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { AppLayout } from "@/components/AppLayout";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { EmptyState } from "@/components/EmptyState";
 import { PageTitleHeader } from "@/components/PageTitleHeader";
 import { PaginationControls } from "@/components/PaginationControls";
@@ -86,6 +87,27 @@ export function MyTicketsPage() {
 			});
 		} finally {
 			setIsSearching(false);
+		}
+	};
+
+	const handleCancelTicket = async (ticketId: string) => {
+		if (!token) return;
+
+		try {
+			await ticketsService.deleteTicket(token, ticketId);
+			toast.success("Ticket cancelled", {
+				description: "Your ticket has been cancelled successfully.",
+			});
+
+			if (searchQuery) {
+				setSearchResults(searchResults.filter((t) => t.id !== ticketId));
+			}
+			await fetchTickets(pagination.page);
+		} catch (err) {
+			toast.error("Cancellation failed", {
+				description:
+					err instanceof Error ? err.message : "Could not cancel ticket.",
+			});
 		}
 	};
 
@@ -181,10 +203,22 @@ export function MyTicketsPage() {
 											</div>
 										)}
 									</div>
-									<div className="mt-4 p-3 bg-green-50 rounded-md">
-										<p className="text-sm text-green-700 font-medium">
-											✓ Ticket confirmed - ID: {ticket.id.slice(0, 8)}...
-										</p>
+									<div className="mt-4 flex items-center justify-between gap-4">
+										<div className="flex-1 p-2 bg-green-50 rounded-md">
+											<p className="text-sm text-green-700 font-medium">
+												✓ Ticket confirmed - ID: {ticket.id.slice(0, 8)}...
+											</p>
+										</div>
+										<ConfirmDialog
+											trigger={
+												<Button variant="destructive">Cancel Ticket</Button>
+											}
+											title="Cancel Ticket"
+											description={`Are you sure you want to cancel your ticket for "${ticket.event.title}"? This action cannot be undone.`}
+											confirmText="Cancel Ticket"
+											variant="destructive"
+											onConfirm={() => handleCancelTicket(ticket.id)}
+										/>
 									</div>
 								</CardContent>
 							</Card>

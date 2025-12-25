@@ -81,4 +81,15 @@ export const ticketsService = {
 		const result = await response.json();
 		return result.data || [];
 	},
+
+	async deleteTicket(token: string, ticketId: string): Promise<void> {
+		const response = await fetch(buildApiUrl(`/api/tickets/${ticketId}`), {
+			method: "DELETE",
+			headers: createAuthHeaders(token),
+		});
+
+		if (!response.ok) {
+			await handleApiError(response);
+		}
+	},
 };

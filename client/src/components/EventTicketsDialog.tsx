@@ -1,5 +1,7 @@
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { EmptyState } from "@/components/EmptyState";
 import { PaginationControls } from "@/components/PaginationControls";
 import { Button } from "@/components/ui/button";
@@ -17,6 +19,7 @@ import {
 	type EventTicketPurchase,
 	eventsService,
 } from "@/services/events.service";
+import { ticketsService } from "@/services/tickets.service";
 
 interface EventTicketsDialogProps {
 	eventId: string;
@@ -98,6 +101,31 @@ export function EventTicketsDialog({
 			setError(err instanceof Error ? err.message : "Failed to load tickets");
 		} finally {
 			setIsLoading(false);
+		}
+	};
+
+	const handleCancelTicket = async (ticketId: string) => {
+		if (!token) return;
+
+		try {
+			await ticketsService.deleteTicket(token, ticketId);
+			toast.success("Ticket cancelled", {
+				description: "The ticket has been cancelled successfully.",
+			});
+
+			const data = await eventsService.getEventTickets(
+				token,
+				eventId,
+				pagination.page,
+				10,
+			);
+			setTickets(data.data || []);
+			setPagination(data.pagination || pagination);
+		} catch (err) {
+			toast.error("Cancellation failed", {
+				description:
+					err instanceof Error ? err.message : "Could not cancel ticket.",
+			});
 		}
 	};
 
@@ -192,10 +220,22 @@ export function EventTicketsDialog({
 											</div>
 										</CardHeader>
 										<CardContent>
-											<div className="p-3 bg-blue-50 rounded-md">
-												<p className="text-sm text-blue-700 font-medium">
-													Ticket ID: {ticket.id.slice(0, 8)}...
-												</p>
+											<div className="flex items-center justify-between gap-4">
+												<div className="flex-1 p-2 bg-blue-50 rounded-md">
+													<p className="text-sm text-blue-700 font-medium">
+														Ticket ID: {ticket.id.slice(0, 8)}...
+													</p>
+												</div>
+												<ConfirmDialog
+													trigger={
+														<Button variant="destructive">Cancel Ticket</Button>
+													}
+													title="Cancel Ticket"
+													description={`Are you sure you want to cancel the ticket for ${ticket.user.name}? This action cannot be undone.`}
+													confirmText="Cancel Ticket"
+													variant="destructive"
+													onConfirm={() => handleCancelTicket(ticket.id)}
+												/>
 											</div>
 										</CardContent>
 									</Card>
