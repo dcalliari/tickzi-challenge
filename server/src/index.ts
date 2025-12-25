@@ -5,10 +5,10 @@ import { checkRedis } from "@server/lib/redis";
 import { authRoutes } from "@server/routes/auth";
 import { eventRoutes } from "@server/routes/events";
 import { ticketRoutes } from "@server/routes/tickets";
+import type { ApiErrorResponse } from "@shared/index";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
-import type { ApiErrorResponse, ApiResponse } from "shared/dist";
 
 export const app = new Hono()
 
