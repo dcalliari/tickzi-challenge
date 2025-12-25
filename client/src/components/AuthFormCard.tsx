@@ -90,7 +90,7 @@ export function AuthInput({
 	helperText,
 }: AuthInputProps) {
 	return (
-		<div className="space-y-2">
+		<div className="space-y-2 mb-4">
 			<Label htmlFor={id}>{label}</Label>
 			<Input
 				id={id}
