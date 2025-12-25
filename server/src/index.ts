@@ -5,11 +5,12 @@ import { eventRoutes } from "@server/routes/events";
 import { ticketRoutes } from "@server/routes/tickets";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { logger } from "hono/logger";
 import type { ApiErrorResponse, ApiResponse } from "shared/dist";
 
 export const app = new Hono()
 
-	.use(cors(), rateLimit({ limit: 10 }))
+	.use(cors(), logger(), rateLimit({ limit: 100 }))
 
 	.get("/", (c) => {
 		return c.json({
