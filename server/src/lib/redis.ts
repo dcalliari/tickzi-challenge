@@ -36,12 +36,18 @@ export const CACHE_KEYS = {
 		`events:my:${userId}:search:${query.toLowerCase()}`,
 	TICKETS_SEARCH: (userId: string, query: string) =>
 		`tickets:${userId}:search:${query.toLowerCase()}`,
+	MY_EVENTS_LIST: (userId: string) => `events:my:${userId}:list`,
+	MY_TICKETS_LIST: (userId: string) => `tickets:my:${userId}:list`,
+	EVENT_TICKETS_LIST: (eventId: string) => `event:${eventId}:tickets:list`,
 } as const;
 
 export const CACHE_TTL = {
-	EVENTS_LIST: 300,
+	EVENTS_LIST: 60,
 	EVENT_DETAIL: 300,
 	SEARCH: 30,
+	MY_EVENTS_LIST: 60,
+	MY_TICKETS_LIST: 60,
+	EVENT_TICKETS_LIST: 60,
 } as const;
 
 export async function getCachedData<T>(key: string): Promise<T | null> {

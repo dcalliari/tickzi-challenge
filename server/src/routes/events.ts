@@ -215,6 +215,14 @@ export const eventRoutes = new Hono<{
 				const { page, limit } = c.req.valid("query");
 				const offset = (page - 1) * limit;
 
+				const cacheKey = `${CACHE_KEYS.MY_EVENTS_LIST(userPayload.userId)}:${page}:${limit}`;
+				const cachedData =
+					await getCachedData<PaginatedResponse<Event>>(cacheKey);
+
+				if (cachedData) {
+					return c.json(cachedData, 200);
+				}
+
 				const [totalResult] = await db
 					.select({ count: count() })
 					.from(eventsInTickzi)
@@ -243,6 +251,8 @@ export const eventRoutes = new Hono<{
 						hasPreviousPage: page > 1,
 					},
 				};
+
+				await setCachedData(cacheKey, response, CACHE_TTL.MY_EVENTS_LIST);
 
 				return c.json(response, 200);
 			} catch (error) {
@@ -292,6 +302,28 @@ export const eventRoutes = new Hono<{
 				const userPayload = c.get("user");
 				const { page, limit } = c.req.valid("query");
 				const offset = (page - 1) * limit;
+
+				const cacheKey = `${CACHE_KEYS.EVENT_TICKETS_LIST(id)}:${page}:${limit}`;
+				const cachedData =
+					await getCachedData<
+						PaginatedResponse<{
+							id: string;
+							purchased_at: string | null;
+							user: { id: string; name: string; email: string };
+						}>
+					>(cacheKey);
+
+				if (cachedData) {
+					const [event] = await db
+						.select({ user_id: eventsInTickzi.user_id })
+						.from(eventsInTickzi)
+						.where(eq(eventsInTickzi.id, id))
+						.limit(1);
+
+					if (event && event.user_id === userPayload.userId) {
+						return c.json(cachedData, 200);
+					}
+				}
 
 				const [event] = await db
 					.select()
@@ -348,6 +380,8 @@ export const eventRoutes = new Hono<{
 					},
 				};
 
+				await setCachedData(cacheKey, response, CACHE_TTL.EVENT_TICKETS_LIST);
+
 				return c.json(response, 200);
 			} catch (error) {
 				console.error("Error fetching event tickets:", error);
@@ -381,6 +415,9 @@ export const eventRoutes = new Hono<{
 				await invalidateCache(`${CACHE_KEYS.EVENTS_LIST}:*`);
 				await invalidateCache(`events:search:*`);
 				await invalidateCache(`events:my:${userPayload.userId}:search:*`);
+				await invalidateCache(
+					`${CACHE_KEYS.MY_EVENTS_LIST(userPayload.userId)}:*`,
+				);
 				return c.json(
 					{
 						success: true,
@@ -435,6 +472,10 @@ export const eventRoutes = new Hono<{
 				await invalidateCache(CACHE_KEYS.EVENT_DETAIL(id));
 				await invalidateCache(`events:search:*`);
 				await invalidateCache(`events:my:${userPayload.userId}:search:*`);
+				await invalidateCache(
+					`${CACHE_KEYS.MY_EVENTS_LIST(userPayload.userId)}:*`,
+				);
+				await invalidateCache(`${CACHE_KEYS.EVENT_TICKETS_LIST(id)}:*`);
 				return c.json(
 					{
 						success: true,
@@ -487,6 +528,10 @@ export const eventRoutes = new Hono<{
 			await invalidateCache(CACHE_KEYS.EVENT_DETAIL(id));
 			await invalidateCache(`events:search:*`);
 			await invalidateCache(`events:my:${userPayload.userId}:search:*`);
+			await invalidateCache(
+				`${CACHE_KEYS.MY_EVENTS_LIST(userPayload.userId)}:*`,
+			);
+			await invalidateCache(`${CACHE_KEYS.EVENT_TICKETS_LIST(id)}:*`);
 
 			return c.json(
 				{ success: true, message: "Event deleted successfully" },

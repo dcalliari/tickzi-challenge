@@ -186,6 +186,10 @@ export const ticketRoutes = new Hono<{
 				await invalidateCache(CACHE_KEYS.EVENT_DETAIL(event_id));
 				await invalidateCache(`events:search:*`);
 				await invalidateCache(`tickets:${userPayload.userId}:search:*`);
+				await invalidateCache(
+					`${CACHE_KEYS.MY_TICKETS_LIST(userPayload.userId)}:*`,
+				);
+				await invalidateCache(`${CACHE_KEYS.EVENT_TICKETS_LIST(event_id)}:*`);
 				return c.json(
 					{
 						success: true,
@@ -210,6 +214,14 @@ export const ticketRoutes = new Hono<{
 				const userPayload = c.get("user");
 				const { page, limit } = c.req.valid("query");
 				const offset = (page - 1) * limit;
+
+				const cacheKey = `${CACHE_KEYS.MY_TICKETS_LIST(userPayload.userId)}:${page}:${limit}`;
+				const cachedData =
+					await getCachedData<PaginatedResponse<TicketWithEvent>>(cacheKey);
+
+				if (cachedData) {
+					return c.json(cachedData, 200);
+				}
 
 				const [totalResult] = await db
 					.select({ count: count() })
@@ -254,6 +266,8 @@ export const ticketRoutes = new Hono<{
 						hasPreviousPage: page > 1,
 					},
 				};
+
+				await setCachedData(cacheKey, response, CACHE_TTL.MY_TICKETS_LIST);
 
 				return c.json(response, 200);
 			} catch (error) {
