@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { EmptyState } from "@/components/EmptyState";
+import { PageTitleHeader } from "@/components/PageTitleHeader";
 import { PaginationControls } from "@/components/PaginationControls";
 import { Button } from "@/components/ui/button";
 import {
@@ -61,17 +62,15 @@ export function MyTicketsPage() {
 
 	return (
 		<AppLayout error={error}>
-			<div className="mb-6 flex items-center justify-between">
-				<div>
-					<h2 className="text-3xl font-bold mb-2">My Tickets</h2>
-					<p className="text-gray-600">
-						All tickets you've reserved for upcoming events
-					</p>
-				</div>
-				<Button asChild variant="outline">
-					<Link to="/">Back to Events</Link>
-				</Button>
-			</div>
+			<PageTitleHeader
+				title="My Tickets"
+				description="All tickets you've reserved for upcoming events"
+				action={
+					<Button asChild variant="outline">
+						<Link to="/">Back to Events</Link>
+					</Button>
+				}
+			/>
 
 			{isLoading ? (
 				<div className="space-y-4">

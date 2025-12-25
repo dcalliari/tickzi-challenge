@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { EmptyState } from "@/components/EmptyState";
 import { ManageEventCard } from "@/components/ManageEventCard";
+import { PageTitleHeader } from "@/components/PageTitleHeader";
 import { PaginationControls } from "@/components/PaginationControls";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -26,15 +27,15 @@ export function MyEventsPage() {
 
 	return (
 		<AppLayout error={error}>
-			<div className="mb-6 flex items-center justify-between">
-				<div>
-					<h2 className="text-3xl font-bold mb-2">My Events</h2>
-					<p className="text-gray-600">Events you created and can manage</p>
-				</div>
-				<Button asChild>
-					<Link to="/events/create">Create Event</Link>
-				</Button>
-			</div>
+			<PageTitleHeader
+				title="My Events"
+				description="Events you created and can manage"
+				action={
+					<Button asChild>
+						<Link to="/events/create">Create Event</Link>
+					</Button>
+				}
+			/>
 
 			{isLoading ? (
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

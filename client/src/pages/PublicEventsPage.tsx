@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { AppLayout } from "@/components/AppLayout";
 import { EmptyState } from "@/components/EmptyState";
 import { EventCard } from "@/components/EventCard";
+import { PageTitleHeader } from "@/components/PageTitleHeader";
 import { PaginationControls } from "@/components/PaginationControls";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
@@ -51,12 +52,10 @@ export function PublicEventsPage() {
 	}, [error, bookingError]);
 
 	const header = (
-		<div className="mb-8">
-			<h1 className="text-3xl font-bold mb-2">Available Events</h1>
-			<p className="text-gray-600">
-				Browse and book tickets for upcoming events
-			</p>
-		</div>
+		<PageTitleHeader
+			title="Available Events"
+			description="Browse and book tickets for upcoming events"
+		/>
 	);
 
 	if (isLoading) {
