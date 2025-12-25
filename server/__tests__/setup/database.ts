@@ -7,7 +7,7 @@ let db: ReturnType<typeof drizzle>;
 
 const TEST_DATABASE_URL =
 	process.env.TEST_DATABASE_URL ||
-	"postgresql://postgres:postgres@localhost:5432/tickzi_db_test";
+	"postgresql://tickzi_user:tickzi_pass@localhost:5432/tickzi_db_test";
 
 export async function setupTestDatabase() {
 	pool = new Pool({
