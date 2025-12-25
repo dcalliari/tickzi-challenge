@@ -37,7 +37,7 @@ bun run db:studio    # Open Drizzle Studio
 bun test
 ```
 
-**57 integration tests** covering:
+**61 integration tests** covering:
 - ✅ Authentication (register/login)
 - ✅ Event management (CRUD)
 - ✅ Public event listing with pagination

@@ -16,6 +16,113 @@ beforeAll(async () => {
 });
 
 describe("Tickets Routes Integration", () => {
+	describe("POST /api/tickets/has", () => {
+		test("should require authentication", async () => {
+			const res = await app.request("/api/tickets/has", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					event_ids: ["550e8400-e29b-41d4-a716-446655440000"],
+				}),
+			});
+
+			expect(res.status).toBe(401);
+		});
+
+		test("should return true/false mapping for provided event ids", async () => {
+			const { token: organizerToken } = await createTestUser();
+			const { token: buyerToken } = await createTestUser();
+
+			const eventWithTicket = await createTestEvent(organizerToken, {
+				ticket_quantity: 10,
+			});
+			const eventWithoutTicket = await createTestEvent(organizerToken, {
+				ticket_quantity: 10,
+			});
+
+			const reserveRes = await app.request("/api/tickets", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${buyerToken}`,
+				},
+				body: JSON.stringify({ event_id: eventWithTicket.id }),
+			});
+			expect(reserveRes.status).toBe(201);
+
+			const res = await app.request("/api/tickets/has", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${buyerToken}`,
+				},
+				body: JSON.stringify({
+					event_ids: [eventWithTicket.id, eventWithoutTicket.id],
+				}),
+			});
+
+			expect(res.status).toBe(200);
+			const data = await res.json();
+			expectApiSuccess(data);
+			expect(data.data[eventWithTicket.id]).toBe(true);
+			expect(data.data[eventWithoutTicket.id]).toBe(false);
+		});
+
+		test("should not return true for tickets owned by another user", async () => {
+			const { token: organizerToken } = await createTestUser();
+			const { token: buyer1Token } = await createTestUser();
+			const { token: buyer2Token } = await createTestUser();
+
+			const event = await createTestEvent(organizerToken, {
+				ticket_quantity: 10,
+			});
+
+			const reserveRes = await app.request("/api/tickets", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${buyer1Token}`,
+				},
+				body: JSON.stringify({ event_id: event.id }),
+			});
+			expect(reserveRes.status).toBe(201);
+
+			const res = await app.request("/api/tickets/has", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${buyer2Token}`,
+				},
+				body: JSON.stringify({
+					event_ids: [event.id],
+				}),
+			});
+
+			expect(res.status).toBe(200);
+			const data = await res.json();
+			expect(data.data[event.id]).toBe(false);
+		});
+
+		test("should reject invalid event ids", async () => {
+			const { token } = await createTestUser();
+
+			const res = await app.request("/api/tickets/has", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${token}`,
+				},
+				body: JSON.stringify({
+					event_ids: ["not-a-uuid"],
+				}),
+			});
+
+			expect(res.status).toBe(400);
+		});
+	});
+
 	describe("POST /api/tickets", () => {
 		test("should reserve ticket successfully", async () => {
 			const { token } = await createTestUser();

@@ -12,7 +12,7 @@ docker compose up postgres redis -d
 
 ## Test Coverage
 
-**Integration Tests (57 tests)**
+**Integration Tests (61 tests)**
 
 - ✅ **Authentication** - Register and login
 - ✅ **Event Management** - Create, list, update, delete events  

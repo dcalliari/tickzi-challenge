@@ -12,7 +12,7 @@ import {
 import { paginationSchema } from "@server/schemas/pagination";
 import { reserveTicketSchema } from "@server/schemas/tickets";
 import type { PaginatedResponse } from "@server/types";
-import { and, count, desc, eq, ilike, or, sql } from "drizzle-orm";
+import { and, count, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import type { Bindings, Variables } from "hono/types";
 import { z } from "zod";
@@ -34,6 +34,49 @@ export const ticketRoutes = new Hono<{
 	Bindings: Bindings;
 	Variables: Variables;
 }>()
+
+	.post(
+		"/has",
+		authenticateToken,
+		zValidator(
+			"json",
+			z.object({
+				event_ids: z.array(z.string().uuid()).min(1).max(50),
+			}),
+		),
+		async (c) => {
+			try {
+				const userPayload = c.get("user");
+				const { event_ids } = c.req.valid("json");
+
+				const rows = await db
+					.select({ event_id: ticketsInTickzi.event_id })
+					.from(ticketsInTickzi)
+					.where(
+						and(
+							eq(ticketsInTickzi.user_id, userPayload.userId),
+							inArray(ticketsInTickzi.event_id, event_ids),
+						),
+					);
+
+				const hasSet = new Set(rows.map((r) => r.event_id));
+				const data = Object.fromEntries(
+					event_ids.map((id) => [id, hasSet.has(id)]),
+				);
+
+				return c.json(
+					{
+						success: true,
+						data,
+					},
+					200,
+				);
+			} catch (error) {
+				console.error("Error checking tickets for events:", error);
+				return c.json({ error: "Internal server error" }, 500);
+			}
+		},
+	)
 
 	.get(
 		"/search",
