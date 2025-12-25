@@ -1,0 +1,25 @@
+import { Navigate } from "react-router-dom";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/contexts/AuthContext";
+
+export function GuestRoute({ children }: { children: React.ReactNode }) {
+	const { user, isLoading } = useAuth();
+
+	if (isLoading) {
+		return (
+			<div className="min-h-screen flex items-center justify-center p-4">
+				<div className="w-full max-w-md space-y-4">
+					<Skeleton className="h-12 w-full" />
+					<Skeleton className="h-64 w-full" />
+					<Skeleton className="h-12 w-full" />
+				</div>
+			</div>
+		);
+	}
+
+	if (user) {
+		return <Navigate to="/" replace />;
+	}
+
+	return <>{children}</>;
+}

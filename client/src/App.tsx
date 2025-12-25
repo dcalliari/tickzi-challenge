@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { GuestRoute } from "@/components/GuestRoute";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -17,8 +18,22 @@ function App() {
 			<AuthProvider>
 				<Routes>
 					<Route path="/" element={<PublicEventsPage />} />
-					<Route path="/login" element={<LoginPage />} />
-					<Route path="/register" element={<RegisterPage />} />
+					<Route
+						path="/login"
+						element={
+							<GuestRoute>
+								<LoginPage />
+							</GuestRoute>
+						}
+					/>
+					<Route
+						path="/register"
+						element={
+							<GuestRoute>
+								<RegisterPage />
+							</GuestRoute>
+						}
+					/>
 					<Route
 						path="/events"
 						element={
