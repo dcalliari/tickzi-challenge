@@ -275,4 +275,76 @@ export const ticketRoutes = new Hono<{
 				return c.json({ error: "Internal server error" }, 500);
 			}
 		},
-	);
+	)
+
+	.delete("/:id", authenticateToken, async (c) => {
+		try {
+			const userPayload = c.get("user");
+			const { id } = c.req.param();
+
+			const result = await db.transaction(async (tx) => {
+				const [ticket] = await tx
+					.select()
+					.from(ticketsInTickzi)
+					.where(eq(ticketsInTickzi.id, id))
+					.for("update")
+					.limit(1);
+
+				if (!ticket) {
+					throw new Error("Ticket not found");
+				}
+
+				const [event] = await tx
+					.select()
+					.from(eventsInTickzi)
+					.where(eq(eventsInTickzi.id, ticket.event_id))
+					.for("update")
+					.limit(1);
+
+				if (!event) {
+					throw new Error("Associated event not found");
+				}
+
+				if (
+					ticket.user_id !== userPayload.userId &&
+					event.user_id !== userPayload.userId
+				) {
+					throw new Error(
+						"Unauthorized: You can only delete your own tickets or tickets for your events",
+					);
+				}
+
+				await tx
+					.delete(ticketsInTickzi)
+					.where(eq(ticketsInTickzi.id, ticket.id));
+
+				await tx
+					.update(eventsInTickzi)
+					.set({
+						ticket_quantity: sql`${eventsInTickzi.ticket_quantity} + 1`,
+					})
+					.where(eq(eventsInTickzi.id, event.id));
+
+				return ticket.event_id;
+			});
+
+			await invalidateCache(`${CACHE_KEYS.EVENTS_LIST}:*`);
+			await invalidateCache(`${CACHE_KEYS.EVENT_TICKETS_LIST(result)}:*`);
+			await invalidateCache(CACHE_KEYS.EVENTS_LIST);
+			await invalidateCache(`tickets:${userPayload.userId}:search:*`);
+			await invalidateCache(
+				`${CACHE_KEYS.MY_TICKETS_LIST(userPayload.userId)}:*`,
+			);
+
+			return c.json(
+				{
+					success: true,
+					message: "Ticket cancelled successfully",
+				},
+				200,
+			);
+		} catch (error) {
+			console.error("Error cancelling ticket:", error);
+			return c.json({ error: "Internal server error" }, 500);
+		}
+	});
