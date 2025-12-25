@@ -218,7 +218,7 @@ export function EditEventPage() {
 							</div>
 						</CardContent>
 
-						<CardFooter className="flex gap-4">
+						<CardFooter className="flex gap-4 pt-4">
 							<Button type="submit" className="flex-1" disabled={isSaving}>
 								{isSaving ? "Saving..." : "Save Changes"}
 							</Button>
