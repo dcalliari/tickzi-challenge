@@ -269,7 +269,7 @@ Configuração: [biome.json](./biome.json)
 
 **Daniel Calliari**
 
-- LinkedIn: [linkedin.com/in/danielcalliari](https://linkedin.com/in/daniel-calliari)
+- LinkedIn: [linkedin.com/in/daniel-calliari](https://linkedin.com/in/daniel-calliari)
 - GitHub: [@dcalliari](https://github.com/dcalliari)
 - Email: daniel@calliari.dev
 
