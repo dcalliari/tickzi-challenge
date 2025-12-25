@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from "react";
 import {
 	type Event,
 	eventsService,
-	type Pagination,
 } from "@/services/events.service";
 
 interface UseEventsOptions {
