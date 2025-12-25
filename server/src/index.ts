@@ -1,4 +1,5 @@
 import { env } from "@server/env";
+import { rateLimit } from "@server/lib/rate-limit";
 import { authRoutes } from "@server/routes/auth";
 import { eventRoutes } from "@server/routes/events";
 import { ticketRoutes } from "@server/routes/tickets";
@@ -8,7 +9,7 @@ import type { ApiErrorResponse, ApiResponse } from "shared/dist";
 
 export const app = new Hono()
 
-	.use(cors())
+	.use(cors(), rateLimit({ limit: 10 }))
 
 	.get("/", (c) => {
 		return c.json({
