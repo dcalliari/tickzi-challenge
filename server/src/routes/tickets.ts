@@ -175,7 +175,11 @@ export const ticketRoutes = new Hono<{
 						})
 						.where(eq(eventsInTickzi.id, event_id));
 
-					return { success: true, ticket: newTicket };
+					return {
+						success: true,
+						ticket: newTicket,
+						eventOwnerId: event.user_id,
+					};
 				});
 
 				if ("error" in result) {
@@ -184,6 +188,10 @@ export const ticketRoutes = new Hono<{
 
 				await invalidateCache(`${CACHE_KEYS.EVENTS_LIST}:*`);
 				await invalidateCache(CACHE_KEYS.EVENT_DETAIL(event_id));
+				await invalidateCache(
+					`${CACHE_KEYS.MY_EVENTS_LIST(result.eventOwnerId)}:*`,
+				);
+				await invalidateCache(`events:my:${result.eventOwnerId}:search:*`);
 				await invalidateCache(`events:search:*`);
 				await invalidateCache(`tickets:${userPayload.userId}:search:*`);
 				await invalidateCache(
@@ -323,16 +331,23 @@ export const ticketRoutes = new Hono<{
 					})
 					.where(eq(eventsInTickzi.id, event.id));
 
-				return ticket.event_id;
+				return { eventId: ticket.event_id, eventOwnerId: event.user_id };
 			});
 
-			if (typeof result !== "string") {
+			if (result instanceof Response) {
 				return result;
 			}
 
 			await invalidateCache(`${CACHE_KEYS.EVENTS_LIST}:*`);
-			await invalidateCache(`${CACHE_KEYS.EVENT_TICKETS_LIST(result)}:*`);
-			await invalidateCache(CACHE_KEYS.EVENTS_LIST);
+			await invalidateCache(`events:search:*`);
+			await invalidateCache(CACHE_KEYS.EVENT_DETAIL(result.eventId));
+			await invalidateCache(
+				`${CACHE_KEYS.EVENT_TICKETS_LIST(result.eventId)}:*`,
+			);
+			await invalidateCache(
+				`${CACHE_KEYS.MY_EVENTS_LIST(result.eventOwnerId)}:*`,
+			);
+			await invalidateCache(`events:my:${result.eventOwnerId}:search:*`);
 			await invalidateCache(`tickets:${userPayload.userId}:search:*`);
 			await invalidateCache(
 				`${CACHE_KEYS.MY_TICKETS_LIST(userPayload.userId)}:*`,
