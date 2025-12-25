@@ -59,4 +59,26 @@ export const ticketsService = {
 
 		return response.json();
 	},
+
+	async searchMyTickets(
+		token: string,
+		query: string,
+		limit = 10,
+	): Promise<Ticket[]> {
+		const response = await fetch(
+			buildApiUrl(
+				`/api/tickets/search?q=${encodeURIComponent(query)}&limit=${limit}`,
+			),
+			{
+				headers: createAuthHeaders(token),
+			},
+		);
+
+		if (!response.ok) {
+			await handleApiError(response);
+		}
+
+		const result = await response.json();
+		return result.data || [];
+	},
 };

@@ -160,4 +160,41 @@ export const eventsService = {
 
 		return response.json();
 	},
+
+	async searchEvents(query: string, limit = 10): Promise<Event[]> {
+		const response = await fetch(
+			buildApiUrl(
+				`/api/events/search?q=${encodeURIComponent(query)}&limit=${limit}`,
+			),
+		);
+
+		if (!response.ok) {
+			await handleApiError(response);
+		}
+
+		const result = await response.json();
+		return result.data || [];
+	},
+
+	async searchMyEvents(
+		token: string,
+		query: string,
+		limit = 10,
+	): Promise<Event[]> {
+		const response = await fetch(
+			buildApiUrl(
+				`/api/events/my-events/search?q=${encodeURIComponent(query)}&limit=${limit}`,
+			),
+			{
+				headers: createAuthHeaders(token),
+			},
+		);
+
+		if (!response.ok) {
+			await handleApiError(response);
+		}
+
+		const result = await response.json();
+		return result.data || [];
+	},
 };

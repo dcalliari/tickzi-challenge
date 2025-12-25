@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import { AppLayout } from "@/components/AppLayout";
 import { EmptyState } from "@/components/EmptyState";
 import { PageTitleHeader } from "@/components/PageTitleHeader";
@@ -29,7 +30,13 @@ export function MyTicketsPage() {
 	});
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState("");
+	const [searchQuery, setSearchQuery] = useState("");
+	const [searchResults, setSearchResults] = useState<Ticket[]>([]);
+	const [isSearching, setIsSearching] = useState(false);
 	const { token } = useAuth();
+
+	const displayTickets = searchQuery ? searchResults : tickets;
+	const isLoadingState = searchQuery ? isSearching : isLoading;
 
 	const fetchTickets = useCallback(
 		async (page = 1) => {
@@ -60,11 +67,36 @@ export function MyTicketsPage() {
 		window.scrollTo({ top: 0, behavior: "smooth" });
 	};
 
+	const handleSearchChange = async (query: string) => {
+		setSearchQuery(query);
+
+		if (!query.trim() || !token) {
+			setSearchResults([]);
+			return;
+		}
+
+		setIsSearching(true);
+		try {
+			const results = await ticketsService.searchMyTickets(token, query);
+			setSearchResults(results);
+		} catch (err) {
+			console.error("Search error:", err);
+			toast.error("Search failed", {
+				description: "Could not search tickets. Please try again.",
+			});
+		} finally {
+			setIsSearching(false);
+		}
+	};
+
 	return (
 		<AppLayout error={error}>
 			<PageTitleHeader
 				title="My Tickets"
 				description="All tickets you've reserved for upcoming events"
+				searchPlaceholder="Search tickets..."
+				searchValue={searchQuery}
+				onSearchChange={handleSearchChange}
 				action={
 					<Button asChild variant="outline">
 						<Link to="/">Back to Events</Link>
@@ -72,7 +104,7 @@ export function MyTicketsPage() {
 				}
 			/>
 
-			{isLoading ? (
+			{isLoadingState ? (
 				<div className="space-y-4">
 					{Array.from({ length: 5 }).map((_, i) => (
 						<Card key={i}>
@@ -97,16 +129,20 @@ export function MyTicketsPage() {
 						</Card>
 					))}
 				</div>
-			) : tickets.length === 0 ? (
+			) : displayTickets.length === 0 ? (
 				<EmptyState
-					message="You haven't reserved any tickets yet"
+					message={
+						searchQuery
+							? "No tickets found matching your search"
+							: "You haven't reserved any tickets yet"
+					}
 					actionLabel="Browse Events"
 					actionPath="/"
 				/>
 			) : (
 				<>
 					<div className="space-y-4">
-						{tickets.map((ticket) => (
+						{displayTickets.map((ticket) => (
 							<Card key={ticket.id}>
 								<CardHeader>
 									<div className="flex items-start justify-between">
@@ -154,11 +190,13 @@ export function MyTicketsPage() {
 							</Card>
 						))}
 					</div>
-					<PaginationControls
-						pagination={pagination}
-						isLoading={isLoading}
-						onPageChange={handlePageChange}
-					/>
+					{!searchQuery && (
+						<PaginationControls
+							pagination={pagination}
+							isLoading={isLoading}
+							onPageChange={handlePageChange}
+						/>
+					)}
 				</>
 			)}
 		</AppLayout>
