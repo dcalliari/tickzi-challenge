@@ -291,7 +291,7 @@ export const ticketRoutes = new Hono<{
 					.limit(1);
 
 				if (!ticket) {
-					throw new Error("Ticket not found");
+					return c.json({ error: "Ticket not found" }, 404);
 				}
 
 				const [event] = await tx
@@ -302,16 +302,14 @@ export const ticketRoutes = new Hono<{
 					.limit(1);
 
 				if (!event) {
-					throw new Error("Associated event not found");
+					return c.json({ error: "Associated event not found" }, 404);
 				}
 
 				if (
 					ticket.user_id !== userPayload.userId &&
 					event.user_id !== userPayload.userId
 				) {
-					throw new Error(
-						"Unauthorized: You can only delete your own tickets or tickets for your events",
-					);
+					return c.json({ error: "Unauthorized" }, 403);
 				}
 
 				await tx
@@ -327,6 +325,10 @@ export const ticketRoutes = new Hono<{
 
 				return ticket.event_id;
 			});
+
+			if (typeof result !== "string") {
+				return result;
+			}
 
 			await invalidateCache(`${CACHE_KEYS.EVENTS_LIST}:*`);
 			await invalidateCache(`${CACHE_KEYS.EVENT_TICKETS_LIST(result)}:*`);
