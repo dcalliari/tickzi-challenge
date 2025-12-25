@@ -1,5 +1,7 @@
+import { checkDatabase } from "@server/db";
 import { env } from "@server/env";
 import { rateLimit } from "@server/lib/rate-limit";
+import { checkRedis } from "@server/lib/redis";
 import { authRoutes } from "@server/routes/auth";
 import { eventRoutes } from "@server/routes/events";
 import { ticketRoutes } from "@server/routes/tickets";
@@ -21,13 +23,18 @@ export const app = new Hono()
 		});
 	})
 
-	.get("/hello", async (c) => {
-		const data: ApiResponse = {
-			message: "Hello Tickzi!",
-			success: true,
+	.get("/health", async (c) => {
+		const checks = {
+			database: await checkDatabase(),
+			redis: await checkRedis(),
 		};
 
-		return c.json(data, { status: 200 });
+		const healthy = Object.values(checks).every((status) => status === true);
+
+		return c.json(
+			{ ...checks, timestamp: new Date().toISOString() },
+			{ status: healthy ? 200 : 503 },
+		);
 	})
 
 	.route("/api/auth", authRoutes)

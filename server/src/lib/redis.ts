@@ -82,3 +82,13 @@ export async function invalidateCache(pattern: string): Promise<void> {
 		console.error("Redis invalidate error:", error);
 	}
 }
+
+export async function checkRedis(): Promise<boolean> {
+	try {
+		await redis.ping();
+		return true;
+	} catch (error) {
+		console.error("Redis health check failed:", error);
+		return false;
+	}
+}
