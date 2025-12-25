@@ -1,0 +1,191 @@
+name: Build, Test, Push & Deploy (GHCR)
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  SERVER_IMAGE: ${{ github.repository }}-server
+  CLIENT_IMAGE: ${{ github.repository }}-client
+
+jobs:
+  test:
+    name: Test (server)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: tickzi_user
+          POSTGRES_PASSWORD: tickzi_pass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U tickzi_user"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.4
+
+      - name: Install dependencies (monorepo)
+        run: bun install
+
+      - name: Run server tests
+        working-directory: server
+        env:
+          TEST_DATABASE_URL: postgresql://tickzi_user:tickzi_pass@localhost:5432/tickzi_db_test
+        run: bun test __tests__ --timeout 30000 --max-concurrency 1
+
+  build-and-push:
+    name: Build & Push Images
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Extract metadata (server)
+        id: meta_server
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.SERVER_IMAGE }}
+          tags: |
+            type=raw,value=latest
+            type=sha,format=short
+
+      - name: Extract metadata (client)
+        id: meta_client
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.CLIENT_IMAGE }}
+          tags: |
+            type=raw,value=latest
+            type=sha,format=short
+
+      - name: Set VITE_SERVER_URL (optional)
+        run: |
+          if [ -n "${{ secrets.VITE_SERVER_URL }}" ]; then
+            echo "VITE_SERVER_URL=${{ secrets.VITE_SERVER_URL }}" >> "$GITHUB_ENV"
+          else
+            echo "VITE_SERVER_URL=http://localhost:3000" >> "$GITHUB_ENV"
+          fi
+
+      - name: Build & push server image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile.server
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta_server.outputs.tags }}
+          labels: ${{ steps.meta_server.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build & push client image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile.client
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta_client.outputs.tags }}
+          labels: ${{ steps.meta_client.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            VITE_SERVER_URL=${{ env.VITE_SERVER_URL }}
+
+  deploy:
+    name: Deploy (SSH)
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USERNAME }}
+          key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+          timeout: 300s
+          command_timeout: 120s
+          script: |
+            set -e
+
+            echo "=== Preflight checks ==="
+            if ! command -v docker >/dev/null 2>&1; then
+              echo "ERROR: docker is not installed on the target machine."
+              echo "Install Docker Engine + Compose v2, then re-run the workflow."
+              exit 1
+            fi
+
+            if ! docker compose version >/dev/null 2>&1; then
+              echo "ERROR: docker compose (v2) is not available on the target machine."
+              echo "Install the Docker Compose plugin (or Docker Desktop) so 'docker compose' works."
+              exit 1
+            fi
+
+            if ! command -v curl >/dev/null 2>&1; then
+              echo "ERROR: curl is not installed on the target machine."
+              exit 1
+            fi
+
+            if ! docker info >/dev/null 2>&1; then
+              echo "ERROR: cannot talk to the Docker daemon as the deploy user."
+              echo "Fix: run as root, or add the user to the 'docker' group, or configure sudo for docker."
+              exit 1
+            fi
+
+            APP_DIR="${{ secrets.DEPLOY_PATH }}"
+            mkdir -p "$APP_DIR"
+            cd "$APP_DIR"
+
+            echo "Downloading docker-compose.ghcr.yml from master..."
+            curl -fsSL \
+              -H "Authorization: token ${{ secrets.GHCR_TOKEN }}" \
+              -H "Accept: application/vnd.github.v3.raw" \
+              -o docker-compose.yml \
+              "https://api.github.com/repos/${{ github.repository }}/contents/docker-compose.ghcr.yml?ref=master"
+
+            echo "Logging into GHCR..."
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+            echo "Pulling new images..."
+            docker compose pull
+
+            echo "Starting containers..."
+            docker compose up -d --remove-orphans
+
+            echo "Deploy done. Current status:"
+            docker compose ps

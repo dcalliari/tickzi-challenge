@@ -1,0 +1,74 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: tickzi-postgres
+    environment:
+      POSTGRES_DB: tickzi_db
+      POSTGRES_USER: tickzi_user
+      POSTGRES_PASSWORD: tickzi_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tickzi-network
+
+  redis:
+    image: redis:7
+    container_name: tickzi-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tickzi-network
+
+  server:
+    image: ghcr.io/dcalliari/tickzi-challenge-server:latest
+    container_name: tickzi-server
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://tickzi_user:tickzi_pass@postgres:5432/tickzi_db
+      REDIS_URL: redis://redis:6379
+      FRONTEND_URL: http://localhost:5173
+      JWT_SECRET: tickzi-super-secret-jwt-key-for-development-only-min-32-chars
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - tickzi-network
+    restart: unless-stopped
+
+  client:
+    image: ghcr.io/dcalliari/tickzi-challenge-client:latest
+    container_name: tickzi-client
+    ports:
+      - "5173:80"
+    depends_on:
+      - server
+    networks:
+      - tickzi-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  tickzi-network:
+    driver: bridge
