@@ -26,6 +26,10 @@ export interface BookTicketRequest {
 	event_id: string;
 }
 
+export interface HasTicketsResponse {
+	data: Record<string, boolean>;
+}
+
 export const ticketsService = {
 	async listMyTickets(
 		token: string,
@@ -91,5 +95,24 @@ export const ticketsService = {
 		if (!response.ok) {
 			await handleApiError(response);
 		}
+	},
+
+	async hasTicketsForEvents(
+		token: string,
+		eventIds: string[],
+	): Promise<Record<string, boolean>> {
+		const response = await fetch(buildApiUrl("/api/tickets/has"), {
+			method: "POST",
+			headers: createAuthHeaders(token),
+			body: JSON.stringify({ event_ids: eventIds }),
+		});
+
+		if (!response.ok) {
+			await handleApiError(response);
+		}
+
+		const result: { success: true; data: Record<string, boolean> } =
+			await response.json();
+		return result.data || {};
 	},
 };

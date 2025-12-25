@@ -17,6 +17,9 @@ export function PublicEventsPage() {
 	const { events, pagination, isLoading, error, fetchEvents } = useEvents();
 	const [bookingEventId, setBookingEventId] = useState<string | null>(null);
 	const [bookingError, setBookingError] = useState("");
+	const [reservedEventIds, setReservedEventIds] = useState<Set<string>>(
+		() => new Set(),
+	);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [searchResults, setSearchResults] = useState<Event[]>([]);
 	const [isSearching, setIsSearching] = useState(false);
@@ -24,6 +27,38 @@ export function PublicEventsPage() {
 
 	const displayEvents = searchQuery ? searchResults : events;
 	const isLoadingState = searchQuery ? isSearching : isLoading;
+
+	useEffect(() => {
+		let isCancelled = false;
+
+		const loadReserved = async () => {
+			if (!token || displayEvents.length === 0) {
+				setReservedEventIds(new Set());
+				return;
+			}
+
+			try {
+				const ids = displayEvents.map((e) => e.id);
+				const data = await ticketsService.hasTicketsForEvents(token, ids);
+				if (isCancelled) return;
+
+				const next = new Set<string>();
+				for (const [eventId, has] of Object.entries(data)) {
+					if (has) next.add(eventId);
+				}
+				setReservedEventIds(next);
+			} catch {
+				if (!isCancelled) {
+					setReservedEventIds(new Set());
+				}
+			}
+		};
+
+		loadReserved();
+		return () => {
+			isCancelled = true;
+		};
+	}, [token, displayEvents]);
 
 	const handlePageChange = (newPage: number) => {
 		fetchEvents(newPage);
@@ -60,6 +95,7 @@ export function PublicEventsPage() {
 			if (!token) throw new Error("Not authenticated");
 
 			await ticketsService.bookTicket(token, { event_id: eventId });
+			setReservedEventIds((prev) => new Set(prev).add(eventId));
 			await fetchEvents();
 			toast.success("Ticket booked successfully!");
 			navigate("/tickets");
@@ -95,8 +131,8 @@ export function PublicEventsPage() {
 			<AppLayout>
 				{header}
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-					{Array.from({ length: 6 }).map((_, i) => (
-						<div key={i} className="space-y-3">
+					{Array.from({ length: 6 }).map(() => (
+						<div key={crypto.randomUUID()} className="space-y-3">
 							<Skeleton className="h-48 w-full" />
 							<Skeleton className="h-6 w-3/4" />
 							<Skeleton className="h-4 w-full" />
@@ -130,6 +166,7 @@ export function PublicEventsPage() {
 								event={event}
 								showBookButton
 								requiresAuth={!user}
+								isReserved={reservedEventIds.has(event.id)}
 								onBook={handleBookTicket}
 								isBooking={bookingEventId === event.id}
 							/>

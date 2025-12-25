@@ -26,6 +26,7 @@ interface EventTicketsDialogProps {
 	eventTitle: string;
 	isOpen: boolean;
 	onClose: () => void;
+	onTicketsChanged?: () => void;
 }
 
 export function EventTicketsDialog({
@@ -33,6 +34,7 @@ export function EventTicketsDialog({
 	eventTitle,
 	isOpen,
 	onClose,
+	onTicketsChanged,
 }: EventTicketsDialogProps) {
 	const { token } = useAuth();
 	const [tickets, setTickets] = useState<EventTicketPurchase[]>([]);
@@ -121,6 +123,7 @@ export function EventTicketsDialog({
 			);
 			setTickets(data.data || []);
 			setPagination(data.pagination || pagination);
+			onTicketsChanged?.();
 		} catch (err) {
 			toast.error("Cancellation failed", {
 				description:
@@ -167,8 +170,8 @@ export function EventTicketsDialog({
 
 					{isLoading ? (
 						<div className="space-y-4">
-							{Array.from({ length: 5 }).map((_, i) => (
-								<Card key={i}>
+							{Array.from({ length: 5 }).map(() => (
+								<Card key={crypto.randomUUID()}>
 									<CardHeader>
 										<div className="flex items-start justify-between">
 											<div className="flex-1">

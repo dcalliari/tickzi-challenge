@@ -30,6 +30,7 @@ export function ManageEventCard({
 	const navigate = useNavigate();
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [showTicketsDialog, setShowTicketsDialog] = useState(false);
+	const [ticketsChanged, setTicketsChanged] = useState(false);
 
 	const handleEdit = () => {
 		navigate(`/events/${event.id}/edit`);
@@ -53,6 +54,14 @@ export function ManageEventCard({
 
 	const handleViewTickets = () => {
 		setShowTicketsDialog(true);
+	};
+
+	const handleCloseTicketsDialog = () => {
+		setShowTicketsDialog(false);
+		if (ticketsChanged) {
+			setTicketsChanged(false);
+			onEventUpdated();
+		}
 	};
 
 	return (
@@ -134,7 +143,8 @@ export function ManageEventCard({
 				eventId={event.id}
 				eventTitle={event.title}
 				isOpen={showTicketsDialog}
-				onClose={() => setShowTicketsDialog(false)}
+				onClose={handleCloseTicketsDialog}
+				onTicketsChanged={() => setTicketsChanged(true)}
 			/>
 		</>
 	);

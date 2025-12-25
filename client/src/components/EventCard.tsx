@@ -27,6 +27,7 @@ interface EventCardProps {
 	isBooking?: boolean;
 	showBookButton?: boolean;
 	requiresAuth?: boolean;
+	isReserved?: boolean;
 }
 
 export function EventCard({
@@ -35,6 +36,7 @@ export function EventCard({
 	isBooking,
 	showBookButton,
 	requiresAuth,
+	isReserved,
 }: EventCardProps) {
 	return (
 		<Card className="hover:shadow-lg transition-shadow flex flex-col">
@@ -82,14 +84,18 @@ export function EventCard({
 					) : (
 						<Button
 							className="w-full"
-							disabled={event.ticket_quantity === 0 || isBooking}
+							disabled={
+								Boolean(isReserved) || event.ticket_quantity === 0 || isBooking
+							}
 							onClick={() => onBook?.(event.id)}
 						>
-							{isBooking
-								? "Booking..."
-								: event.ticket_quantity === 0
-									? "Sold Out"
-									: "Book Ticket"}
+							{isReserved
+								? "Ticket reserved"
+								: isBooking
+									? "Booking..."
+									: event.ticket_quantity === 0
+										? "Sold Out"
+										: "Book Ticket"}
 						</Button>
 					)}
 				</CardFooter>
