@@ -2,6 +2,16 @@
 FROM oven/bun:1 AS base
 WORKDIR /app
 
+# Native deps for node-gyp (used by some transitive deps during bun install)
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+    python3 \
+    make \
+    g++ \
+  && rm -rf /var/lib/apt/lists/*
+
+ENV PYTHON=/usr/bin/python3
+
 # Copy everything
 COPY . .
 
