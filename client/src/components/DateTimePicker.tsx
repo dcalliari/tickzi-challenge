@@ -61,6 +61,9 @@ export function DateTimePicker({
 									onDateChange(date);
 									setOpenDatePicker(false);
 								}}
+								disabled={{ before: new Date() }}
+								startMonth={new Date(new Date().getFullYear(), 0)}
+								endMonth={new Date(new Date().getFullYear() + 10, 0)}
 							/>
 						</PopoverContent>
 					</Popover>
