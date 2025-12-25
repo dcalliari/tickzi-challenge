@@ -6,7 +6,7 @@ import {
 	expectPaginationResponse,
 	expectUUID,
 } from "../../helpers/assertions";
-import { createTestUser } from "../../helpers/factories";
+import { createTestEvent, createTestUser } from "../../helpers/factories";
 
 let app: Hono;
 
@@ -513,6 +513,163 @@ describe("Events Routes Integration", () => {
 			const res = await app.request("/api/events/my-events");
 
 			expect(res.status).toBe(401);
+		});
+	});
+
+	describe("GET /api/events/search", () => {
+		test("should search events by title", async () => {
+			const { token } = await createTestUser();
+
+			await app.request("/api/events", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${token}`,
+				},
+				body: JSON.stringify({
+					title: "Rock Concert",
+					date: "2025-12-31",
+					location: "Stadium",
+					ticket_quantity: 100,
+					ticket_price: 5000,
+				}),
+			});
+
+			const res = await app.request("/api/events/search?q=Rock&limit=10");
+
+			expect(res.status).toBe(200);
+			const data = await res.json();
+			expectApiSuccess(data);
+			expect(data.query).toBe("Rock");
+			expect(data.data.length).toBeGreaterThan(0);
+			expect(data.data.some((e: any) => e.title.includes("Rock"))).toBe(true);
+		});
+
+		test("should only return events with available tickets", async () => {
+			const { token } = await createTestUser();
+
+			await app.request("/api/events", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${token}`,
+				},
+				body: JSON.stringify({
+					title: "Available Event",
+					date: "2025-12-31",
+					location: "Venue",
+					ticket_quantity: 10,
+					ticket_price: 1000,
+				}),
+			});
+
+			const res = await app.request("/api/events/search?q=Available");
+			const data = await res.json();
+
+			data.data.forEach((event: any) => {
+				expect(event.ticket_quantity).toBeGreaterThan(0);
+			});
+		});
+	});
+
+	describe("GET /api/events/my-events/search", () => {
+		test("should search only user's own events", async () => {
+			const { token: token1 } = await createTestUser();
+			const { token: token2 } = await createTestUser();
+
+			await app.request("/api/events", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${token1}`,
+				},
+				body: JSON.stringify({
+					title: "My Special Event",
+					date: "2025-12-31",
+					location: "Venue",
+					ticket_quantity: 50,
+					ticket_price: 1000,
+				}),
+			});
+
+			await app.request("/api/events", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${token2}`,
+				},
+				body: JSON.stringify({
+					title: "Special Conference",
+					date: "2025-12-31",
+					location: "Venue",
+					ticket_quantity: 50,
+					ticket_price: 1000,
+				}),
+			});
+
+			const res = await app.request("/api/events/my-events/search?q=Special", {
+				headers: {
+					Authorization: `Bearer ${token1}`,
+				},
+			});
+
+			expect(res.status).toBe(200);
+			const data = await res.json();
+			expectApiSuccess(data);
+			expect(data.data.length).toBe(1);
+			expect(data.data[0].title).toBe("My Special Event");
+		});
+
+		test("should require authentication", async () => {
+			const res = await app.request("/api/events/my-events/search?q=test");
+			expect(res.status).toBe(401);
+		});
+	});
+
+	describe("GET /api/events/:id/tickets", () => {
+		test("should return tickets for event owner", async () => {
+			const { token: organizer } = await createTestUser();
+			const { token: buyer } = await createTestUser();
+
+			const event = await createTestEvent(organizer, {
+				ticket_quantity: 10,
+			});
+
+			await app.request("/api/tickets", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${buyer}`,
+				},
+				body: JSON.stringify({ event_id: event.id }),
+			});
+
+			const res = await app.request(`/api/events/${event.id}/tickets`, {
+				headers: {
+					Authorization: `Bearer ${organizer}`,
+				},
+			});
+
+			expect(res.status).toBe(200);
+			const data = await res.json();
+			expectPaginationResponse(data);
+			expect(data.data.length).toBe(1);
+			expect(data.data[0].user).toBeDefined();
+		});
+
+		test("should not allow non-owner to view tickets", async () => {
+			const { token: organizer } = await createTestUser();
+			const { token: other } = await createTestUser();
+
+			const event = await createTestEvent(organizer);
+
+			const res = await app.request(`/api/events/${event.id}/tickets`, {
+				headers: {
+					Authorization: `Bearer ${other}`,
+				},
+			});
+
+			expect(res.status).toBe(403);
 		});
 	});
 });

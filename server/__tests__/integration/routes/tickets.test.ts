@@ -368,4 +368,142 @@ describe("Tickets Routes Integration", () => {
 			expect(data.data[0].event.location).toBe("Special Venue");
 		});
 	});
+
+	describe("GET /api/tickets/search", () => {
+		test("should search user's tickets by event title", async () => {
+			const { token } = await createTestUser();
+			const event = await createTestEvent(token, {
+				title: "Jazz Festival",
+			});
+
+			await app.request("/api/tickets", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${token}`,
+				},
+				body: JSON.stringify({ event_id: event.id }),
+			});
+
+			const res = await app.request("/api/tickets/search?q=Jazz", {
+				headers: {
+					Authorization: `Bearer ${token}`,
+				},
+			});
+
+			expect(res.status).toBe(200);
+			const data = await res.json();
+			expectApiSuccess(data);
+			expect(data.data.length).toBe(1);
+			expect(data.data[0].event.title).toBe("Jazz Festival");
+		});
+
+		test("should require authentication", async () => {
+			const res = await app.request("/api/tickets/search?q=test");
+			expect(res.status).toBe(401);
+		});
+	});
+
+	describe("DELETE /api/tickets/:id", () => {
+		test("should allow ticket owner to delete ticket", async () => {
+			const { token } = await createTestUser();
+			const event = await createTestEvent(token, {
+				ticket_quantity: 10,
+			});
+
+			const ticketRes = await app.request("/api/tickets", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${token}`,
+				},
+				body: JSON.stringify({ event_id: event.id }),
+			});
+
+			const ticketData = await ticketRes.json();
+			const ticketId = ticketData.data.id;
+
+			const res = await app.request(`/api/tickets/${ticketId}`, {
+				method: "DELETE",
+				headers: {
+					Authorization: `Bearer ${token}`,
+				},
+			});
+
+			expect(res.status).toBe(200);
+			const eventRes = await app.request(`/api/events/${event.id}`);
+			const eventData = await eventRes.json();
+			expect(eventData.data.ticket_quantity).toBe(10);
+		});
+
+		test("should allow event owner to delete ticket", async () => {
+			const { token: organizer } = await createTestUser();
+			const { token: buyer } = await createTestUser();
+
+			const event = await createTestEvent(organizer, {
+				ticket_quantity: 10,
+			});
+
+			const ticketRes = await app.request("/api/tickets", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${buyer}`,
+				},
+				body: JSON.stringify({ event_id: event.id }),
+			});
+
+			const ticketData = await ticketRes.json();
+			const ticketId = ticketData.data.id;
+
+			const res = await app.request(`/api/tickets/${ticketId}`, {
+				method: "DELETE",
+				headers: {
+					Authorization: `Bearer ${organizer}`,
+				},
+			});
+
+			expect(res.status).toBe(200);
+		});
+
+		test("should not allow unauthorized user to delete ticket", async () => {
+			const { token: buyer } = await createTestUser();
+			const { token: other } = await createTestUser();
+			const event = await createTestEvent(buyer, {
+				ticket_quantity: 10,
+			});
+
+			const ticketRes = await app.request("/api/tickets", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${buyer}`,
+				},
+				body: JSON.stringify({ event_id: event.id }),
+			});
+
+			const ticketData = await ticketRes.json();
+			const ticketId = ticketData.data.id;
+
+			const res = await app.request(`/api/tickets/${ticketId}`, {
+				method: "DELETE",
+				headers: {
+					Authorization: `Bearer ${other}`,
+				},
+			});
+
+			expect(res.status).toBe(403);
+		});
+
+		test("should require authentication", async () => {
+			const res = await app.request(
+				"/api/tickets/550e8400-e29b-41d4-a716-446655440000",
+				{
+					method: "DELETE",
+				},
+			);
+
+			expect(res.status).toBe(401);
+		});
+	});
 });
