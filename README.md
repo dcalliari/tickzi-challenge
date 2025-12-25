@@ -20,7 +20,7 @@ git clone https://github.com/dcalliari/tickzi-challenge.git
 cd tickzi-challenge
 
 # Execute com Docker (recomendado)
-docker-compose up --build
+docker compose up --build
 
 # Aguarde ~2-3 minutos e acesse:
 # - Frontend: http://localhost:5173
@@ -37,12 +37,10 @@ docker-compose up --build
 - [Como Executar](#-como-executar)
   - [Com Docker (Recomendado)](#opção-1-docker-recomendado)
   - [Desenvolvimento Local](#opção-2-desenvolvimento-local)
-- [Arquitetura](#-arquitetura)
-- [API Documentation](#-api-documentation)
-- [Testes](#-testes)
-- [CI/CD](#-cicd)
 - [Desafios Técnicos](#-desafios-técnicos)
-- [Melhorias Futuras](#-melhorias-futuras)
+- [Desenvolvimento](#-desenvolvimento)
+- [Autor](#-autor)
+- [Licença](#-licença)
 
 ## 📖 Sobre o Projeto
 
@@ -98,7 +96,7 @@ Tickzi é uma plataforma full-stack de gerenciamento de eventos e venda de ingre
 
 ### Frontend
 
-- **Framework**: [React 18](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
+- **Framework**: [React 19](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
 - **Build Tool**: [Vite](https://vitejs.dev/) - Build ultra-rápido
 - **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
 - **UI Components**: [shadcn/ui](https://ui.shadcn.com/)
@@ -119,7 +117,7 @@ Tickzi é uma plataforma full-stack de gerenciamento de eventos e venda de ingre
 ### Pré-requisitos
 
 - [Docker](https://docs.docker.com/get-docker/) e [Docker Compose](https://docs.docker.com/compose/install/) **OU**
-- [Bun](https://bun.sh/docs/installation) >= 1.0
+- [Bun](https://bun.sh/docs/installation) >= 1.2
 - [PostgreSQL](https://www.postgresql.org/download/) >= 16 (se não usar Docker)
 - [Redis](https://redis.io/download) >= 7 (se não usar Docker)
 
@@ -133,11 +131,17 @@ git clone https://github.com/dcalliari/tickzi-challenge.git
 cd tickzi-challenge
 
 # Suba toda a stack
-docker-compose up --build
+docker compose up --build
 
 # Acesse a aplicação
 # Frontend: http://localhost:5173
 # API: http://localhost:3000
+```
+
+**Alternativa (imagens prontas via GHCR):**
+
+```bash
+docker compose -f docker-compose.ghcr.yml up
 ```
 
 ### Opção 2: Desenvolvimento Local
@@ -153,7 +157,7 @@ cd tickzi-challenge
 bun install
 
 # 3. Suba PostgreSQL e Redis (via Docker)
-docker-compose up postgres redis -d
+docker compose up postgres redis -d
 
 # 4. Configure as variáveis de ambiente
 cp server/.env.example server/.env
@@ -249,6 +253,15 @@ bun run db:studio    # Drizzle Studio
 
 # Client
 bun run dev:client   # Dev client com hot reload
+```
+
+### Testes (Server)
+
+Os testes de integração rodam no pacote `server` e precisam de **PostgreSQL** disponível (Redis é mockado com `ioredis-mock`).
+
+```bash
+docker compose up postgres -d
+bun run test -- --filter=server
 ```
 
 ### Code Style

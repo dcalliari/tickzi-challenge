@@ -3,16 +3,20 @@
 ## Running Tests
 
 ```bash
-# Run all tests (requires Docker)
+# Requirements:
+# - PostgreSQL reachable via TEST_DATABASE_URL
+# - Redis is mocked (ioredis-mock), so it is NOT required
+
+# Run all tests
 bun test
 
-# Start required services
-docker compose up postgres redis -d
+# Start PostgreSQL if needed
+docker compose up postgres -d
 ```
 
 ## Test Coverage
 
-**Integration Tests (61 tests)**
+**Integration Tests**
 
 - ✅ **Authentication** - Register and login
 - ✅ **Event Management** - Create, list, update, delete events  

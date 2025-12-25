@@ -33,11 +33,17 @@ bun run db:studio    # Open Drizzle Studio
 ## Tests
 
 ```sh
-# Run all tests (requires Docker services)
+# Requirements:
+# - PostgreSQL reachable via TEST_DATABASE_URL (Redis is mocked with ioredis-mock)
+
+# Start PostgreSQL (if you don't have one running locally)
+docker compose up postgres -d
+
+# Run all server tests
 bun test
 ```
 
-**61 integration tests** covering:
+**Integration tests** covering:
 - ✅ Authentication (register/login)
 - ✅ Event management (CRUD)
 - ✅ Public event listing with pagination
