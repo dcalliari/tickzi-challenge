@@ -16,7 +16,7 @@ import {
 import { createEventSchema, updateEventSchema } from "@server/schemas/events";
 import { paginationSchema } from "@server/schemas/pagination";
 import type { PaginatedResponse } from "@server/types";
-import { and, asc, count, desc, eq, gt, ilike, or, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, gt, ilike, or } from "drizzle-orm";
 import { Hono } from "hono";
 import type { Bindings, Variables } from "hono/types";
 import { z } from "zod";
