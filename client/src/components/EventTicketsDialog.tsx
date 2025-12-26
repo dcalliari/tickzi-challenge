@@ -12,6 +12,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDate } from "@/lib/formatters";
@@ -132,25 +133,17 @@ export function EventTicketsDialog({
 		}
 	};
 
-	if (!isOpen) return null;
-
 	return (
-		<button
-			type="button"
-			className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-			onClick={(e) => {
-				if (e.target === e.currentTarget) {
-					onClose();
-				}
+		<Dialog
+			open={isOpen}
+			onOpenChange={(open) => {
+				if (!open) onClose();
 			}}
-			onKeyDown={(e) => {
-				if (e.key === "Escape") {
-					onClose();
-				}
-			}}
-			aria-label="Close dialog"
 		>
-			<div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+			<DialogContent
+				className="flex flex-col gap-0 max-w-4xl w-full max-h-[90vh] overflow-hidden p-0"
+				showCloseButton={false}
+			>
 				<div className="flex items-center justify-between p-6 border-b">
 					<div>
 						<h2 className="text-2xl font-bold">Tickets Sold</h2>
@@ -263,7 +256,7 @@ export function EventTicketsDialog({
 						Close
 					</Button>
 				</div>
-			</div>
-		</button>
+			</DialogContent>
+		</Dialog>
 	);
 }
