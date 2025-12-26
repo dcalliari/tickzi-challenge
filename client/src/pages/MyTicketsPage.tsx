@@ -175,8 +175,10 @@ export function MyTicketsPage() {
 											</CardDescription>
 										</div>
 										<div className="text-right">
-											<div className="text-sm text-gray-500">Ticket Price</div>
-											<div className="text-xl font-bold text-blue-600">
+											<div className="text-sm text-muted-foreground">
+												Ticket Price
+											</div>
+											<div className="text-xl font-bold text-primary">
 												{formatPrice(ticket.event.ticket_price)}
 											</div>
 										</div>
@@ -185,18 +187,18 @@ export function MyTicketsPage() {
 								<CardContent>
 									<div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
 										<div>
-											<p className="text-gray-500">Location</p>
+											<p className="text-muted-foreground">Location</p>
 											<p className="font-medium">{ticket.event.location}</p>
 										</div>
 										<div>
-											<p className="text-gray-500">Reserved on</p>
+											<p className="text-muted-foreground">Reserved on</p>
 											<p className="font-medium">
 												{formatDate(ticket.purchased_at)}
 											</p>
 										</div>
 										{ticket.event.description && (
 											<div className="col-span-full">
-												<p className="text-gray-500">Description</p>
+												<p className="text-muted-foreground">Description</p>
 												<p className="font-medium">
 													{ticket.event.description}
 												</p>
@@ -204,8 +206,8 @@ export function MyTicketsPage() {
 										)}
 									</div>
 									<div className="mt-4 flex items-center justify-between gap-4">
-										<div className="flex-1 p-2 bg-green-50 rounded-md">
-											<p className="text-sm text-green-700 font-medium">
+										<div className="flex-1 p-2 bg-primary/10 rounded-md">
+											<p className="text-sm text-primary font-medium">
 												✓ Ticket confirmed - ID: {ticket.id.slice(0, 8)}...
 											</p>
 										</div>

@@ -28,7 +28,7 @@ export function LoginPage() {
 	};
 
 	return (
-		<div className="min-h-screen bg-gray-50">
+		<div className="min-h-screen bg-background">
 			<PageHeader />
 			<div className="min-h-[calc(100vh-64px)] flex items-center justify-center py-12 px-4">
 				<AuthFormCard

@@ -55,7 +55,7 @@ export function SearchBar({
 
 	return (
 		<div className={`relative min-w-0 ${className}`}>
-			<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+			<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
 			<Input
 				type="text"
 				placeholder={placeholder}
@@ -67,7 +67,7 @@ export function SearchBar({
 				<button
 					type="button"
 					onClick={handleClear}
-					className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+					className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
 					aria-label="Clear search"
 				>
 					<X className="h-4 w-4" />

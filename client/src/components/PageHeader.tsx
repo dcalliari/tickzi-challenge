@@ -1,4 +1,5 @@
-import { LogOut, Ticket } from "lucide-react";
+import { LogOut, Moon, Sun, Ticket } from "lucide-react";
+import { useTheme } from "next-themes";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
@@ -8,16 +9,31 @@ interface PageHeaderProps {
 }
 
 export function PageHeader({ user, onLogout }: PageHeaderProps) {
+	const { resolvedTheme, setTheme } = useTheme();
+	const isDark = resolvedTheme === "dark";
+
+	const handleToggleTheme = () => {
+		setTheme(isDark ? "light" : "dark");
+	};
+
 	return (
-		<header className="bg-white border-b">
+		<header className="bg-background border-b border-border">
 			<div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
 				<Link to="/">
 					<h1 className="text-2xl font-bold">Tickzi</h1>
 				</Link>
-				<div className="flex items-center gap-4">
+				<div className="flex items-center gap-2">
+					<Button
+						onClick={handleToggleTheme}
+						variant="ghost"
+						size="icon"
+						aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+					>
+						{isDark ? <Sun /> : <Moon />}
+					</Button>
 					{user ? (
 						<>
-							<span className="hidden sm:inline text-sm text-gray-600">
+							<span className="hidden sm:inline text-sm text-muted-foreground">
 								Hi, {user.name}!
 							</span>
 							<Button asChild variant="outline">

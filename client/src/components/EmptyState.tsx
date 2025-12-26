@@ -18,7 +18,7 @@ export function EmptyState({
 	return (
 		<Card>
 			<CardContent className="py-12 text-center">
-				<p className="text-gray-600 mb-4">{message}</p>
+				<p className="text-muted-foreground mb-4">{message}</p>
 				{actionLabel && onAction && (
 					<Button type="button" onClick={onAction}>
 						{actionLabel}

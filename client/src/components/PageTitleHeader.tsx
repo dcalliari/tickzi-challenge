@@ -27,7 +27,7 @@ export function PageTitleHeader({
 					<h2 className="text-xl sm:text-3xl font-bold leading-tight">
 						{title}
 					</h2>
-					<p className="hidden md:block text-gray-600">{description}</p>
+					<p className="hidden md:block text-muted-foreground">{description}</p>
 				</div>
 				{(showSearch || action) && (
 					<div className="w-full sm:w-auto min-w-0">

@@ -44,7 +44,7 @@ export function AuthFormCard({
 			<form onSubmit={onSubmit}>
 				<CardContent className="space-y-4">
 					{error && (
-						<div className="bg-red-50 text-red-600 p-3 rounded-md text-sm">
+						<div className="bg-destructive/10 text-destructive p-3 rounded-md text-sm">
 							{error}
 						</div>
 					)}
@@ -54,9 +54,9 @@ export function AuthFormCard({
 					<Button type="submit" className="w-full" disabled={isLoading}>
 						{submitLabel}
 					</Button>
-					<p className="text-sm text-center text-gray-600">
+					<p className="text-sm text-center text-muted-foreground">
 						{footerText}{" "}
-						<Link to={footerLinkTo} className="text-blue-600 hover:underline">
+						<Link to={footerLinkTo} className="text-primary hover:underline">
 							{footerLinkText}
 						</Link>
 					</p>
@@ -101,7 +101,9 @@ export function AuthInput({
 				required={required}
 				minLength={minLength}
 			/>
-			{helperText && <p className="text-xs text-gray-500">{helperText}</p>}
+			{helperText && (
+				<p className="text-xs text-muted-foreground">{helperText}</p>
+			)}
 		</div>
 	);
 }

@@ -144,10 +144,10 @@ export function EventTicketsDialog({
 				className="flex flex-col gap-0 max-w-4xl w-full max-h-[90vh] overflow-hidden p-0"
 				showCloseButton={false}
 			>
-				<div className="flex items-center justify-between p-6 border-b">
+				<div className="flex items-center justify-between p-6 border-b border-border">
 					<div>
 						<h2 className="text-2xl font-bold">Tickets Sold</h2>
-						<p className="text-gray-600 mt-1">{eventTitle}</p>
+						<p className="text-muted-foreground mt-1">{eventTitle}</p>
 					</div>
 					<Button variant="outline" onClick={onClose}>
 						<X className="w-4 h-4" />
@@ -156,7 +156,7 @@ export function EventTicketsDialog({
 
 				<div className="flex-1 overflow-y-auto p-6">
 					{error && (
-						<div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+						<div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded mb-4">
 							{error}
 						</div>
 					)}
@@ -188,7 +188,7 @@ export function EventTicketsDialog({
 					) : (
 						<>
 							<div className="mb-4">
-								<p className="text-sm text-gray-600">
+								<p className="text-sm text-muted-foreground">
 									Total tickets sold:{" "}
 									<span className="font-semibold">{pagination.total}</span>
 								</p>
@@ -206,7 +206,7 @@ export function EventTicketsDialog({
 													</CardDescription>
 												</div>
 												<div className="text-right">
-													<div className="text-sm text-gray-500">
+													<div className="text-sm text-muted-foreground">
 														Purchased on
 													</div>
 													<div className="text-sm font-medium">
@@ -217,8 +217,8 @@ export function EventTicketsDialog({
 										</CardHeader>
 										<CardContent>
 											<div className="flex items-center justify-between gap-4">
-												<div className="flex-1 p-2 bg-blue-50 rounded-md">
-													<p className="text-sm text-blue-700 font-medium">
+												<div className="flex-1 p-2 bg-primary/10 rounded-md">
+													<p className="text-sm text-primary font-medium">
 														Ticket ID: {ticket.id.slice(0, 8)}...
 													</p>
 												</div>

@@ -49,17 +49,17 @@ export function EventCard({
 			</CardHeader>
 			<CardContent className="flex-1 space-y-3">
 				{event.description && (
-					<p className="text-gray-700 text-sm line-clamp-3">
+					<p className="text-muted-foreground text-sm line-clamp-3">
 						{event.description}
 					</p>
 				)}
-				<div className="flex items-center gap-2 text-gray-600 text-sm">
+				<div className="flex items-center gap-2 text-muted-foreground text-sm">
 					<MapPin className="w-4 h-4" />
 					{event.location}
 				</div>
-				<div className="flex justify-between items-center pt-2 border-t">
+				<div className="flex justify-between items-center pt-2 border-t border-border">
 					<div className="text-sm">
-						<span className="text-gray-600">Tickets: </span>
+						<span className="text-muted-foreground">Tickets: </span>
 						<span
 							className={`font-semibold ${
 								event.ticket_quantity > 0 ? "text-green-600" : "text-red-600"
@@ -70,7 +70,7 @@ export function EventCard({
 								: "Sold out"}
 						</span>
 					</div>
-					<div className="text-lg font-bold text-gray-900">
+					<div className="text-lg font-bold text-foreground">
 						{formatPrice(event.ticket_price)}
 					</div>
 				</div>
