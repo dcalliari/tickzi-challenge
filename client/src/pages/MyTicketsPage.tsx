@@ -199,7 +199,7 @@ export function MyTicketsPage() {
 										{ticket.event.description && (
 											<div className="col-span-full">
 												<p className="text-muted-foreground">Description</p>
-												<p className="font-medium">
+												<p className="font-medium text-muted-foreground text-sm line-clamp-3 wrap-break-word">
 													{ticket.event.description}
 												</p>
 											</div>
