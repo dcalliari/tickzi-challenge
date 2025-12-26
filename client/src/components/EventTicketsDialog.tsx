@@ -159,19 +159,30 @@ export function EventTicketsDialog({
 
 						{isLoading ? (
 							<div className="space-y-4">
-								{Array.from({ length: 5 }).map(() => (
+								<div className="mb-4">
+									<Skeleton className="h-4 w-48" />
+								</div>
+
+								{Array.from({ length: 2 }).map(() => (
 									<Card key={crypto.randomUUID()}>
 										<CardHeader>
 											<div className="flex items-start justify-between">
 												<div className="flex-1">
-													<Skeleton className="h-5 w-32 mb-2" />
-													<Skeleton className="h-4 w-24" />
+													<Skeleton className="h-6 w-48 mb-2" />
+													<Skeleton className="h-4 w-32" />
 												</div>
-												<div>
+												<div className="text-right space-y-2">
+													<Skeleton className="h-4 w-24" />
 													<Skeleton className="h-4 w-20" />
 												</div>
 											</div>
 										</CardHeader>
+										<CardContent>
+											<div className="flex items-center justify-between gap-4">
+												<Skeleton className="h-10 flex-1" />
+												<Skeleton className="h-10 w-32" />
+											</div>
+										</CardContent>
 									</Card>
 								))}
 							</div>
