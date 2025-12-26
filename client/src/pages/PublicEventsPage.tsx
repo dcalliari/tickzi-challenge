@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { AppLayout } from "@/components/AppLayout";
+import { CreateEventDialog } from "@/components/CreateEventDialog";
 import { EmptyState } from "@/components/EmptyState";
 import { EventCard } from "@/components/EventCard";
 import { PageTitleHeader } from "@/components/PageTitleHeader";
@@ -15,6 +16,7 @@ import { ticketsService } from "@/services/tickets.service";
 export function PublicEventsPage() {
 	const { user, token } = useAuth();
 	const { events, pagination, isLoading, error, fetchEvents } = useEvents();
+	const [isCreateOpen, setIsCreateOpen] = useState(false);
 	const [bookingEventId, setBookingEventId] = useState<string | null>(null);
 	const [bookingError, setBookingError] = useState("");
 	const [reservedEventIds, setReservedEventIds] = useState<Set<string>>(
@@ -155,7 +157,8 @@ export function PublicEventsPage() {
 							: "No events available yet. Check back later to see new events!"
 					}
 					actionLabel={user ? "Create Event" : "Login to Create Event"}
-					actionPath={user ? "/events/create" : "/login"}
+					onAction={user ? () => setIsCreateOpen(true) : undefined}
+					actionPath={!user ? "/login" : undefined}
 				/>
 			) : (
 				<>
@@ -181,6 +184,15 @@ export function PublicEventsPage() {
 					)}
 				</>
 			)}
+
+			<CreateEventDialog
+				open={isCreateOpen}
+				onClose={() => setIsCreateOpen(false)}
+				onCreated={() => {
+					setIsCreateOpen(false);
+					navigate("/events");
+				}}
+			/>
 		</AppLayout>
 	);
 }

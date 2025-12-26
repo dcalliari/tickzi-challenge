@@ -1,6 +1,5 @@
 import { Calendar, Edit, MapPin, Ticket, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { EventTicketsDialog } from "@/components/EventTicketsDialog";
@@ -20,20 +19,21 @@ import { type Event, eventsService } from "@/services/events.service";
 interface ManageEventCardProps {
 	event: Event;
 	onEventUpdated: () => void;
+	onEdit: (event: Event) => void;
 }
 
 export function ManageEventCard({
 	event,
 	onEventUpdated,
+	onEdit,
 }: ManageEventCardProps) {
 	const { token } = useAuth();
-	const navigate = useNavigate();
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [showTicketsDialog, setShowTicketsDialog] = useState(false);
 	const [ticketsChanged, setTicketsChanged] = useState(false);
 
 	const handleEdit = () => {
-		navigate(`/events/${event.id}/edit`);
+		onEdit(event);
 	};
 
 	const handleDelete = async () => {

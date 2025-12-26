@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { AppLayout } from "@/components/AppLayout";
+import { CreateEventDialog } from "@/components/CreateEventDialog";
+import { EditEventDialog } from "@/components/EditEventDialog";
 import { EmptyState } from "@/components/EmptyState";
 import { ManageEventCard } from "@/components/ManageEventCard";
 import { PageTitleHeader } from "@/components/PageTitleHeader";
@@ -21,6 +22,8 @@ export function MyEventsPage() {
 	const [searchQuery, setSearchQuery] = useState("");
 	const [searchResults, setSearchResults] = useState<Event[]>([]);
 	const [isSearching, setIsSearching] = useState(false);
+	const [isCreateOpen, setIsCreateOpen] = useState(false);
+	const [editEvent, setEditEvent] = useState<Event | null>(null);
 
 	const displayEvents = searchQuery ? searchResults : events;
 	const isLoadingState = searchQuery ? isSearching : isLoading;
@@ -65,8 +68,8 @@ export function MyEventsPage() {
 				searchValue={searchQuery}
 				onSearchChange={handleSearchChange}
 				action={
-					<Button asChild>
-						<Link to="/events/create">Create Event</Link>
+					<Button type="button" onClick={() => setIsCreateOpen(true)}>
+						Create Event
 					</Button>
 				}
 			/>
@@ -91,7 +94,7 @@ export function MyEventsPage() {
 							: "You haven't created any events yet"
 					}
 					actionLabel="Create your first event"
-					actionPath="/events/create"
+					onAction={() => setIsCreateOpen(true)}
 				/>
 			) : (
 				<>
@@ -101,6 +104,7 @@ export function MyEventsPage() {
 								key={event.id}
 								event={event}
 								onEventUpdated={handleEventUpdated}
+								onEdit={(e) => setEditEvent(e)}
 							/>
 						))}
 					</div>
@@ -113,6 +117,18 @@ export function MyEventsPage() {
 					)}
 				</>
 			)}
+
+			<CreateEventDialog
+				open={isCreateOpen}
+				onClose={() => setIsCreateOpen(false)}
+				onCreated={handleEventUpdated}
+			/>
+			<EditEventDialog
+				open={editEvent !== null}
+				event={editEvent}
+				onClose={() => setEditEvent(null)}
+				onUpdated={handleEventUpdated}
+			/>
 		</AppLayout>
 	);
 }
