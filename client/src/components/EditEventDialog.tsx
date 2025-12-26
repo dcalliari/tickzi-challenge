@@ -131,6 +131,7 @@ export function EditEventDialog({
 									placeholder="Describe your event..."
 									value={description}
 									onChange={(e) => setDescription(e.target.value)}
+									maxLength={500}
 									rows={4}
 								/>
 							</div>
