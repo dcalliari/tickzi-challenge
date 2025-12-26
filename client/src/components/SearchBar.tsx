@@ -15,7 +15,7 @@ export function SearchBar({
 	value = "",
 	onSearchChange,
 	debounceMs = 300,
-	className = "w-64",
+	className = "w-full sm:w-64",
 }: SearchBarProps) {
 	const [localValue, setLocalValue] = useState(value);
 	const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
@@ -54,7 +54,7 @@ export function SearchBar({
 	}, []);
 
 	return (
-		<div className={`relative ${className}`}>
+		<div className={`relative min-w-0 ${className}`}>
 			<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
 			<Input
 				type="text"
