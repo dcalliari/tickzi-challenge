@@ -1,4 +1,4 @@
-import { Ticket } from "lucide-react";
+import { LogOut, Ticket } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
@@ -17,7 +17,9 @@ export function PageHeader({ user, onLogout }: PageHeaderProps) {
 				<div className="flex items-center gap-4">
 					{user ? (
 						<>
-							<span className="text-sm text-gray-600">Hi, {user.name}!</span>
+							<span className="hidden sm:inline text-sm text-gray-600">
+								Hi, {user.name}!
+							</span>
 							<Button asChild variant="outline">
 								<Link to="/events">My Events</Link>
 							</Button>
@@ -26,7 +28,18 @@ export function PageHeader({ user, onLogout }: PageHeaderProps) {
 									<Ticket />
 								</Link>
 							</Button>
-							<Button onClick={onLogout}>Logout</Button>
+							<Button onClick={onLogout} className="hidden sm:inline-flex">
+								Logout
+							</Button>
+							<Button
+								onClick={onLogout}
+								variant="ghost"
+								size="icon"
+								className="sm:hidden"
+								aria-label="Logout"
+							>
+								<LogOut />
+							</Button>
 						</>
 					) : (
 						<>
