@@ -128,8 +128,8 @@ export function MyTicketsPage() {
 
 			{isLoadingState ? (
 				<div className="space-y-4">
-					{Array.from({ length: 5 }).map((_, i) => (
-						<Card key={i}>
+					{Array.from({ length: 5 }).map(() => (
+						<Card key={crypto.randomUUID()}>
 							<CardHeader>
 								<div className="flex items-start justify-between">
 									<div className="flex-1">
