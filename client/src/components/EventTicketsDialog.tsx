@@ -1,4 +1,3 @@
-import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
@@ -9,6 +8,7 @@ import {
 	Card,
 	CardContent,
 	CardDescription,
+	CardFooter,
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
@@ -141,121 +141,120 @@ export function EventTicketsDialog({
 			}}
 		>
 			<DialogContent
-				className="flex flex-col gap-0 max-w-4xl w-full max-h-[90vh] overflow-hidden p-0"
+				className="flex flex-col max-h-[90vh] overflow-hidden p-0 sm:max-w-2xl"
 				showCloseButton={false}
 			>
-				<div className="flex items-center justify-between p-6 border-b border-border">
-					<div>
-						<h2 className="text-2xl font-bold">Tickets Sold</h2>
-						<p className="text-muted-foreground mt-1">{eventTitle}</p>
-					</div>
-					<Button variant="outline" onClick={onClose}>
-						<X className="w-4 h-4" />
-					</Button>
-				</div>
+				<Card className="border-0 shadow-none h-full">
+					<CardHeader>
+						<CardTitle className="text-2xl">Tickets Sold</CardTitle>
+						<CardDescription>{eventTitle}</CardDescription>
+					</CardHeader>
 
-				<div className="flex-1 overflow-y-auto p-6">
-					{error && (
-						<div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded mb-4">
-							{error}
-						</div>
-					)}
-
-					{isLoading ? (
-						<div className="space-y-4">
-							{Array.from({ length: 5 }).map(() => (
-								<Card key={crypto.randomUUID()}>
-									<CardHeader>
-										<div className="flex items-start justify-between">
-											<div className="flex-1">
-												<Skeleton className="h-5 w-32 mb-2" />
-												<Skeleton className="h-4 w-24" />
-											</div>
-											<div>
-												<Skeleton className="h-4 w-20" />
-											</div>
-										</div>
-									</CardHeader>
-								</Card>
-							))}
-						</div>
-					) : tickets.length === 0 ? (
-						<EmptyState
-							message="No tickets sold yet"
-							actionLabel=""
-							actionPath=""
-						/>
-					) : (
-						<>
-							<div className="mb-4">
-								<p className="text-sm text-muted-foreground">
-									Total tickets sold:{" "}
-									<span className="font-semibold">{pagination.total}</span>
-								</p>
+					<CardContent className="flex-1 overflow-y-auto">
+						{error && (
+							<div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded mb-4">
+								{error}
 							</div>
+						)}
 
+						{isLoading ? (
 							<div className="space-y-4">
-								{tickets.map((ticket) => (
-									<Card key={ticket.id}>
+								{Array.from({ length: 5 }).map(() => (
+									<Card key={crypto.randomUUID()}>
 										<CardHeader>
 											<div className="flex items-start justify-between">
-												<div>
-													<CardTitle>{ticket.user.name}</CardTitle>
-													<CardDescription className="mt-1">
-														{ticket.user.email}
-													</CardDescription>
+												<div className="flex-1">
+													<Skeleton className="h-5 w-32 mb-2" />
+													<Skeleton className="h-4 w-24" />
 												</div>
-												<div className="text-right">
-													<div className="text-sm text-muted-foreground">
-														Purchased on
-													</div>
-													<div className="text-sm font-medium">
-														{formatDate(ticket.purchased_at)}
-													</div>
+												<div>
+													<Skeleton className="h-4 w-20" />
 												</div>
 											</div>
 										</CardHeader>
-										<CardContent>
-											<div className="flex items-center justify-between gap-4">
-												<div className="flex-1 p-2 bg-primary/10 rounded-md">
-													<p className="text-sm text-primary font-medium">
-														Ticket ID: {ticket.id.slice(0, 8)}...
-													</p>
-												</div>
-												<ConfirmDialog
-													trigger={
-														<Button variant="destructive">Cancel Ticket</Button>
-													}
-													title="Cancel Ticket"
-													description={`Are you sure you want to cancel the ticket for ${ticket.user.name}? This action cannot be undone.`}
-													confirmText="Cancel Ticket"
-													variant="destructive"
-													onConfirm={() => handleCancelTicket(ticket.id)}
-												/>
-											</div>
-										</CardContent>
 									</Card>
 								))}
 							</div>
-
-							{pagination.totalPages > 1 && (
-								<div className="mt-6">
-									<PaginationControls
-										pagination={pagination}
-										isLoading={isLoading}
-										onPageChange={handlePageChange}
-									/>
+						) : tickets.length === 0 ? (
+							<EmptyState
+								message="No tickets sold yet"
+								actionLabel=""
+								actionPath=""
+							/>
+						) : (
+							<>
+								<div className="mb-4">
+									<p className="text-sm text-muted-foreground">
+										Total tickets sold:{" "}
+										<span className="font-semibold">{pagination.total}</span>
+									</p>
 								</div>
-							)}
-						</>
-					)}
-				</div>
 
-				<div className="p-6 border-t">
-					<Button onClick={onClose} className="w-full">
-						Close
-					</Button>
-				</div>
+								<div className="space-y-4">
+									{tickets.map((ticket) => (
+										<Card key={ticket.id}>
+											<CardHeader>
+												<div className="flex items-start justify-between">
+													<div>
+														<CardTitle>{ticket.user.name}</CardTitle>
+														<CardDescription className="mt-1">
+															{ticket.user.email}
+														</CardDescription>
+													</div>
+													<div className="text-right">
+														<div className="text-sm text-muted-foreground">
+															Purchased on
+														</div>
+														<div className="text-sm font-medium">
+															{formatDate(ticket.purchased_at)}
+														</div>
+													</div>
+												</div>
+											</CardHeader>
+											<CardContent>
+												<div className="flex items-center justify-between gap-4">
+													<div className="flex-1 p-2 bg-primary/10 rounded-md">
+														<p className="text-sm text-primary font-medium">
+															Ticket ID: {ticket.id.slice(0, 8)}...
+														</p>
+													</div>
+													<ConfirmDialog
+														trigger={
+															<Button variant="destructive">
+																Cancel Ticket
+															</Button>
+														}
+														title="Cancel Ticket"
+														description={`Are you sure you want to cancel the ticket for ${ticket.user.name}? This action cannot be undone.`}
+														confirmText="Cancel Ticket"
+														variant="destructive"
+														onConfirm={() => handleCancelTicket(ticket.id)}
+													/>
+												</div>
+											</CardContent>
+										</Card>
+									))}
+								</div>
+
+								{pagination.totalPages > 1 && (
+									<div className="mt-6">
+										<PaginationControls
+											pagination={pagination}
+											isLoading={isLoading}
+											onPageChange={handlePageChange}
+										/>
+									</div>
+								)}
+							</>
+						)}
+					</CardContent>
+
+					<CardFooter className="pt-4">
+						<Button onClick={onClose} className="w-full" variant="secondary">
+							Close
+						</Button>
+					</CardFooter>
+				</Card>
 			</DialogContent>
 		</Dialog>
 	);
