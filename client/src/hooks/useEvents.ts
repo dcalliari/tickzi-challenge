@@ -1,8 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import {
-	type Event,
-	eventsService,
-} from "@/services/events.service";
+import { type Event, eventsService } from "@/services/events.service";
 
 interface UseEventsOptions {
 	myEvents?: boolean;
