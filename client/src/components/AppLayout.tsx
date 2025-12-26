@@ -1,4 +1,3 @@
-import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -9,11 +8,9 @@ interface AppLayoutProps {
 
 export function AppLayout({ children }: AppLayoutProps) {
 	const { user, logout } = useAuth();
-	const navigate = useNavigate();
 
 	const handleLogout = () => {
 		logout();
-		navigate("/");
 	};
 
 	return (
